@@ -36,6 +36,7 @@ Pour éviter toute redondance et pollution de contexte, les règles métier dét
 5. **Attendus & Barème académique (ESGI)** : Consulter [attendus_et_bareme_hackathon_esgi.md](docs/attendus_et_bareme_hackathon_esgi.md) (Critères d'évaluation, répartition des notes de soutenance sur 20 points, exigences UI/UX, Agile, Front/Back, DevOps).
 6. **Périmètre fonctionnel & Backlog MVP** : Consulter [perimetre_fonctionnel_hackathon_comutitres.md](docs/perimetre_fonctionnel_hackathon_comutitres.md) (Découpage en priorités MVP 1, 2 et 3, scénarios de démonstration cibles, attendus de la refonte).
 7. **Schéma métier global & Modèle conceptuel** : Consulter [schema_enrichi_comutitres.md](docs/schema_enrichi_comutitres.md) (Diagramme ER de relation Porteur/Payeur/Contrat/Droit, architecture macro et états back-office consolidés).
+8. **Développement Web Offline-First** : Consulter [offline-first-web.md](docs/offline-first-web.md) (Principes du Manifeste Offline-First, Service Workers, stratégies de cache Cache-First/Network-First/Stale-While-Revalidate, IndexedDB et gestion des conflits).
 
 ---
 
