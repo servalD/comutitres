@@ -12,6 +12,7 @@ import { CompositeTokenVerifier } from './infrastructure/composite-token-verifie
 import { DynamicTokenVerifier } from './infrastructure/dynamic-token-verifier';
 import { FranceConnectService } from './infrastructure/franceconnect.service';
 import { AuthController } from './presentation/auth.controller';
+import { FranceConnectPublicCallbackController } from './presentation/franceconnect-public-callback.controller';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { AuthController } from './presentation/auth.controller';
       }),
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, FranceConnectPublicCallbackController],
   providers: [
     AppJwtService,
     DynamicTokenVerifier,

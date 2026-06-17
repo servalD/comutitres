@@ -59,4 +59,50 @@ describe('FranceConnect mock flow (e2e)', () => {
     const body = me.body as { provider: string };
     expect(body.provider).toBe('franceconnect');
   });
+
+  it('accepts the public FranceConnect callback alias at /callback', async () => {
+    const callback = await request(app.getHttpServer())
+      .get('/callback')
+      .query({ code: 'mock-code-public-callback' })
+      .expect(302);
+
+    const fragment = new URL(callback.headers.location).hash;
+    const accessToken = new URLSearchParams(fragment.slice(1)).get(
+      'access_token',
+    );
+    expect(accessToken).toBeTruthy();
+
+    const me = await request(app.getHttpServer())
+      .get('/auth/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+
+    const body = me.body as { provider: string };
+    expect(body.provider).toBe('franceconnect');
+  });
+
+  it('falls back to a mock session when FranceConnect redirects back with an error', async () => {
+    const callback = await request(app.getHttpServer())
+      .get('/callback')
+      .query({
+        error: 'temporarily_unavailable',
+        error_description: 'Sandbox unavailable',
+        state: 'demo-state',
+      })
+      .expect(302);
+
+    const fragment = new URL(callback.headers.location).hash;
+    const accessToken = new URLSearchParams(fragment.slice(1)).get(
+      'access_token',
+    );
+    expect(accessToken).toBeTruthy();
+
+    const me = await request(app.getHttpServer())
+      .get('/auth/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+
+    const body = me.body as { provider: string };
+    expect(body.provider).toBe('franceconnect');
+  });
 });

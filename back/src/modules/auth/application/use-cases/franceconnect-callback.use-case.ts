@@ -9,6 +9,12 @@ export interface FranceConnectCallbackResult {
   userId: string;
 }
 
+export interface FranceConnectCallbackInput {
+  code?: string;
+  error?: string;
+  errorDescription?: string;
+}
+
 /**
  * Completes FranceConnect login: exchanges the code for an identity, syncs the
  * local user, and issues an app session JWT the SPA can use as a Bearer token.
@@ -21,8 +27,16 @@ export class FranceConnectCallbackUseCase {
     private readonly appJwtService: AppJwtService,
   ) {}
 
-  async execute(code: string): Promise<FranceConnectCallbackResult> {
-    const identity = await this.franceConnect.handleCallback(code);
+  async execute(
+    input: string | FranceConnectCallbackInput,
+  ): Promise<FranceConnectCallbackResult> {
+    const callback = typeof input === 'string' ? { code: input } : input;
+    const identity = callback.error
+      ? await this.franceConnect.handleCallbackError(
+          callback.error,
+          callback.errorDescription,
+        )
+      : await this.franceConnect.handleCallback(callback.code ?? '');
     const user = await this.syncUser.execute({
       provider: identity.provider,
       providerSubject: identity.subject,
