@@ -71,6 +71,34 @@ describe('Auth & RBAC (e2e)', () => {
     return request(app.getHttpServer()).get('/users/me').expect(401);
   });
 
+  it('POST /auth/register and /auth/login normalize local e-mails at the HTTP boundary', async () => {
+    const register = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({
+        firstName: 'Marie',
+        lastName: 'Dupont',
+        email: '  Marie.Dupont@Example.FR  ',
+        password: 'MotDePasse123!',
+      })
+      .expect(201);
+
+    expect(
+      typeof (register.body as { accessToken?: unknown }).accessToken,
+    ).toBe('string');
+
+    const login = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({
+        email: '  MARIE.DUPONT@EXAMPLE.FR  ',
+        password: 'MotDePasse123!',
+      })
+      .expect(200);
+
+    expect(typeof (login.body as { accessToken?: unknown }).accessToken).toBe(
+      'string',
+    );
+  });
+
   it('GET /users/me with a valid token syncs and returns the user (default USER role)', async () => {
     const res = await request(app.getHttpServer())
       .get('/users/me')

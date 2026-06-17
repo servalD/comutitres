@@ -91,17 +91,11 @@ export class FranceConnectService {
     error: string,
     errorDescription?: string,
   ): Promise<ExternalIdentity> {
-    if (this.shouldFallbackToMock()) {
-      this.logger.warn(
-        `FranceConnect callback returned ${error}${
-          errorDescription ? `: ${errorDescription}` : ''
-        }; falling back to mock identity`,
-      );
-      return Promise.resolve(
-        this.buildMockIdentity(error, `fc-${this.mode}-fallback`),
-      );
-    }
-
+    this.logger.warn(
+      `FranceConnect callback returned ${error}${
+        errorDescription ? `: ${errorDescription}` : ''
+      }`,
+    );
     throw new UnauthorizedException(
       errorDescription || `FranceConnect callback failed: ${error}`,
     );

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { SyncUserUseCase } from '../../../users/application/use-cases/sync-user.use-case';
 import { FranceConnectService } from '../../infrastructure/franceconnect.service';
 import { AppJwtService } from '../../infrastructure/app-jwt.service';
@@ -31,12 +31,16 @@ export class FranceConnectCallbackUseCase {
     input: string | FranceConnectCallbackInput,
   ): Promise<FranceConnectCallbackResult> {
     const callback = typeof input === 'string' ? { code: input } : input;
-    const identity = callback.error
-      ? await this.franceConnect.handleCallbackError(
-          callback.error,
-          callback.errorDescription,
-        )
-      : await this.franceConnect.handleCallback(callback.code ?? '');
+    if (callback.error) {
+      throw new UnauthorizedException(
+        callback.errorDescription ||
+          `FranceConnect callback failed: ${callback.error}`,
+      );
+    }
+
+    const identity = await this.franceConnect.handleCallback(
+      callback.code ?? '',
+    );
     const user = await this.syncUser.execute({
       provider: identity.provider,
       providerSubject: identity.subject,

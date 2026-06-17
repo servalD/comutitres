@@ -1,9 +1,9 @@
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { UserRepository } from '../../../users/domain/user.repository';
+import { normalizeLocalEmail } from '../local-email';
 import { AppJwtService } from '../../infrastructure/app-jwt.service';
 import { AuthProvider } from '../../../users/domain/user';
-import { normalizeLocalEmail } from './normalize-local-email';
 
 export interface RegisterParams {
   firstName: string;

@@ -33,6 +33,7 @@ import { RegisterRequest } from '../application/dto/register.request';
 import { LoginRequest } from '../application/dto/login.request';
 import { RegisterUseCase } from '../application/use-cases/register.use-case';
 import { LoginWithCredentialsUseCase } from '../application/use-cases/login-with-credentials.use-case';
+import { buildFranceConnectErrorRedirectUrl } from './franceconnect-error-redirect';
 
 class TokenResponse {
   accessToken: string;
@@ -102,12 +103,21 @@ export class AuthController {
     @Query('error_description') errorDescription: string | undefined,
     @Res() res: Response,
   ): Promise<void> {
+    const frontendUrl = this.config.get('FRONTEND_URL', { infer: true });
+    if (error) {
+      res.redirect(
+        buildFranceConnectErrorRedirectUrl(
+          frontendUrl,
+          error,
+          errorDescription,
+        ),
+      );
+      return;
+    }
+
     const { accessToken } = await this.franceConnectCallback.execute({
       code,
-      error,
-      errorDescription,
     });
-    const frontendUrl = this.config.get('FRONTEND_URL', { infer: true });
     // Hand the token to the SPA via fragment (kept out of server logs / Referer).
     res.redirect(`${frontendUrl}/auth/callback#access_token=${accessToken}`);
   }
