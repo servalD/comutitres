@@ -25,6 +25,7 @@ back/                   NestJS API (clean architecture)
   src/infrastructure/database/README.md  TypeORM & migrations rules
 docker/                 Dockerfiles live next to each app; compose & swarm here
   README.md                 how to run dev / test / prod / swarm
+docs/                   functional specifications and technical guides
 .github/workflows/      CI (tests), Trivy (security), Release (build+push to GHCR)
 ```
 

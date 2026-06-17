@@ -39,7 +39,9 @@ export class AuthController {
   /** Step 1: redirect the user to FranceConnect to authenticate. */
   @Public()
   @Get('franceconnect/login')
-  @ApiOperation({ summary: 'Redirige vers FranceConnect pour authentification' })
+  @ApiOperation({
+    summary: 'Redirige vers FranceConnect pour authentification',
+  })
   login(@Res() res: Response): void {
     const { authorizationUrl } = this.franceConnectLogin.execute();
     res.redirect(authorizationUrl);
@@ -48,12 +50,20 @@ export class AuthController {
   /** Step 2: FranceConnect redirects here; we issue an app token and hand it to the front. */
   @Public()
   @Get('franceconnect/callback')
-  @ApiOperation({ summary: 'Callback FranceConnect : émet un token applicatif' })
+  @ApiOperation({
+    summary: 'Callback FranceConnect : émet un token applicatif',
+  })
   async callback(
-    @Query('code') code: string,
+    @Query('code') code: string | undefined,
+    @Query('error') error: string | undefined,
+    @Query('error_description') errorDescription: string | undefined,
     @Res() res: Response,
   ): Promise<void> {
-    const { accessToken } = await this.franceConnectCallback.execute(code);
+    const { accessToken } = await this.franceConnectCallback.execute({
+      code,
+      error,
+      errorDescription,
+    });
     const frontendUrl = this.config.get('FRONTEND_URL', { infer: true });
     // Hand the token to the SPA via fragment (kept out of server logs / Referer).
     res.redirect(`${frontendUrl}/auth/callback#access_token=${accessToken}`);
