@@ -26,6 +26,9 @@ Pour éviter toute redondance et pollution de contexte, les règles métier dét
 2. **Cycle de vie & Transitions d'âge** : Consulter [cycle_vie_titres_transport.md](docs/cycle_vie_titres_transport.md) (Bascule Scolaire à 11 ans, compte Connect à 15 ans, payeur à 16 ans, Navigo Senior à 62 ans, TST trimestriel).
 3. **Analyse CGVU & Règles spécifiques** : Consulter [analyse_cgvu_idfm_regles_metier.md](docs/analyse_cgvu_idfm_regles_metier.md) (Règles imagine R, impayés Liberté+, cohabitation des cartes, conformité RGPD, Docker & télémétrie Glitchtip/Umami).
 4. **FAQ, Perte/Vol & Remboursements** : Consulter [faq_idfm_questions_reponses.md](docs/faq_idfm_questions_reponses.md) (Procédures de SAV, d'opposition et de réclamations).
+5. **Attendus & Barème académique (ESGI)** : Consulter [attendus_et_bareme_hackathon_esgi.md](docs/attendus_et_bareme_hackathon_esgi.md) (Critères d'évaluation, répartition des notes de soutenance sur 20 points, exigences UI/UX, Agile, Front/Back, DevOps).
+6. **Périmètre fonctionnel & Backlog MVP** : Consulter [perimetre_fonctionnel_hackathon_comutitres.md](docs/perimetre_fonctionnel_hackathon_comutitres.md) (Découpage en priorités MVP 1, 2 et 3, scénarios de démonstration cibles, attendus de la refonte).
+7. **Schéma métier global & Modèle conceptuel** : Consulter [schema_enrichi_comutitres.md](docs/schema_enrichi_comutitres.md) (Diagramme ER de relation Porteur/Payeur/Contrat/Droit, architecture macro et états back-office consolidés).
 
 ---
 
