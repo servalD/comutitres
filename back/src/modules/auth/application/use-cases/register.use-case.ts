@@ -3,6 +3,7 @@ import * as bcrypt from 'bcryptjs';
 import { UserRepository } from '../../../users/domain/user.repository';
 import { AppJwtService } from '../../infrastructure/app-jwt.service';
 import { AuthProvider } from '../../../users/domain/user';
+import { normalizeLocalEmail } from './normalize-local-email';
 
 export interface RegisterParams {
   firstName: string;
@@ -29,7 +30,8 @@ export class RegisterUseCase {
   ) {}
 
   async execute(params: RegisterParams): Promise<RegisterResult> {
-    const existing = await this.userRepository.findLocalByEmail(params.email);
+    const email = normalizeLocalEmail(params.email);
+    const existing = await this.userRepository.findLocalByEmail(email);
     if (existing) {
       throw new ConflictException('Cette adresse e-mail est déjà utilisée.');
     }
@@ -38,7 +40,7 @@ export class RegisterUseCase {
     const user = await this.userRepository.createLocal({
       firstName: params.firstName,
       lastName: params.lastName,
-      email: params.email,
+      email,
       passwordHash,
     });
 

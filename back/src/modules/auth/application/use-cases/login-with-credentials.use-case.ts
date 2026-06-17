@@ -3,6 +3,7 @@ import * as bcrypt from 'bcryptjs';
 import { UserRepository } from '../../../users/domain/user.repository';
 import { AppJwtService } from '../../infrastructure/app-jwt.service';
 import { AuthProvider } from '../../../users/domain/user';
+import { normalizeLocalEmail } from './normalize-local-email';
 
 export interface LoginWithCredentialsParams {
   email: string;
@@ -27,9 +28,8 @@ export class LoginWithCredentialsUseCase {
   async execute(
     params: LoginWithCredentialsParams,
   ): Promise<LoginWithCredentialsResult> {
-    const credentials = await this.userRepository.findLocalByEmail(
-      params.email,
-    );
+    const email = normalizeLocalEmail(params.email);
+    const credentials = await this.userRepository.findLocalByEmail(email);
 
     const isValid =
       credentials !== null &&
