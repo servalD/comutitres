@@ -1,15 +1,24 @@
 import { Controller, Get, Query, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Response } from 'express';
 import { Env } from '../../../infrastructure/config/env.validation';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { Public } from '../../../shared/decorators/public.decorator';
 import { User } from '../../users/domain/user';
-import { toUserResponse } from '../../users/presentation/user.presenter';
-import type { UserResponse } from '../../users/presentation/user.presenter';
+import {
+  toUserResponse,
+  UserResponse,
+} from '../../users/presentation/user.presenter';
 import { FranceConnectLoginUseCase } from '../application/use-cases/franceconnect-login.use-case';
 import { FranceConnectCallbackUseCase } from '../application/use-cases/franceconnect-callback.use-case';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -20,6 +29,9 @@ export class AuthController {
 
   /** Returns the current authenticated user (works for both providers). */
   @Get('me')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Utilisateur authentifié courant' })
+  @ApiOkResponse({ type: UserResponse })
   me(@CurrentUser() user: User): UserResponse {
     return toUserResponse(user);
   }
@@ -27,6 +39,7 @@ export class AuthController {
   /** Step 1: redirect the user to FranceConnect to authenticate. */
   @Public()
   @Get('franceconnect/login')
+  @ApiOperation({ summary: 'Redirige vers FranceConnect pour authentification' })
   login(@Res() res: Response): void {
     const { authorizationUrl } = this.franceConnectLogin.execute();
     res.redirect(authorizationUrl);
@@ -35,6 +48,7 @@ export class AuthController {
   /** Step 2: FranceConnect redirects here; we issue an app token and hand it to the front. */
   @Public()
   @Get('franceconnect/callback')
+  @ApiOperation({ summary: 'Callback FranceConnect : émet un token applicatif' })
   async callback(
     @Query('code') code: string,
     @Res() res: Response,

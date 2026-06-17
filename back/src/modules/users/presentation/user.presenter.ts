@@ -1,13 +1,27 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../domain/user';
 import { Role } from '../../../shared/enums/role.enum';
 
-export interface UserResponse {
+export class UserResponse {
+  @ApiProperty({ format: 'uuid' })
   id: string;
+
+  @ApiProperty({ example: 'franceconnect' })
   provider: string;
+
+  @ApiProperty({ type: String, nullable: true, example: 'user@example.com' })
   email: string | null;
+
+  @ApiProperty({ type: String, nullable: true })
   walletAddress: string | null;
+
+  @ApiProperty({ type: String, nullable: true })
   displayName: string | null;
+
+  @ApiProperty({ enum: Role, isArray: true })
   roles: Role[];
+
+  @ApiProperty({ format: 'date-time' })
   createdAt: string;
 }
 
