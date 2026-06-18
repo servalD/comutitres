@@ -220,6 +220,15 @@
   align-self: start;
 }
 
+.memberLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+  text-decoration: none;
+  color: inherit;
+}
+
 .memberInfo {
   min-width: 0;
   display: flex;

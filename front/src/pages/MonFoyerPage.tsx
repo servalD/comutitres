@@ -79,7 +79,7 @@ export function MonFoyerPage() {
             members.map((member) => (
             <li key={member.id}>
               <Card className={styles.memberCard}>
-                <button type="button" className={styles.memberBtn}>
+                <Link to={`/foyer/${member.id}`} className={styles.memberBtn}>
                   <Avatar
                     name={`${member.firstName} ${member.lastName}`}
                     size="md"
@@ -111,7 +111,7 @@ export function MonFoyerPage() {
                   </div>
 
                   <ChevronRight />
-                </button>
+                </Link>
               </Card>
             </li>
             ))
