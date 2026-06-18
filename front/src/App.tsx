@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom'
+import type { ReactNode } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { AppShell } from './components/layout/AppShell'
 import { RagChatbot } from './components/RagChatbot'
@@ -50,7 +51,7 @@ function PublicRoute({
   children,
 }: {
   zone: AuthZone
-  children: React.ReactNode
+  children: ReactNode
 }) {
   const { token, isLoading } = useAuth()
 
