@@ -24,9 +24,7 @@
   display: flex;
   justify-content: center;
   width: 100%;
-  max-width: 26rem;
-  padding-top: 3rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .logo {
@@ -324,10 +322,7 @@
   }
 
   .logoWrap {
-    max-width: 36rem;
-    width: 100%;
-    margin-bottom: 2rem;
-    padding-top: 0;
+    margin-bottom: 1.5rem;
     justify-content: center;
   }
 

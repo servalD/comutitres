@@ -115,18 +115,15 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
   return (
     <PublicAppFrame variant="white">
       <main className={ls.page}>
-        {/* Logo IDFM */}
-        <div className={ls.logoWrap}>
-          <img
-            // src="/images/idfm-mobilites-logo.png"
-            // alt="Île-de-France Mobilités"
-            src="/images/comutitres-logo.svg"
-            alt="Comutitres"
-            className={ls.logo}
-          />
-        </div>
-
         <div className={ls.card}>
+          <div className={ls.logoWrap}>
+            <img
+              src="/images/comutitres-logo.svg"
+              alt="Comutitres"
+              className={ls.logo}
+            />
+          </div>
+
           <h1 className={ls.title}>Créer un compte</h1>
 
           {error && (
