@@ -1,0 +1,122 @@
+import { AppLayout } from '../components/layout/AppLayout'
+import { PageHeader } from '../components/layout/PageHeader'
+import { Avatar } from '../components/ui/Avatar'
+import { Button } from '../components/ui/Button'
+import { Card } from '../components/ui/Card'
+import { MOCK_HOUSEHOLD } from '../data/mock'
+import styles from './MonFoyerPage.module.css'
+
+function ChevronRight() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M9 18l6-6-6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 5v14M5 12h14"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function statusClass(status: string) {
+  if (status.includes('actif')) return styles.statusActive
+  if (status.includes('cours')) return styles.statusPending
+  return styles.statusNeutral
+}
+
+export function MonFoyerPage() {
+  return (
+    <AppLayout activeTab="foyer">
+      <div className={styles.page}>
+        <PageHeader
+          title="Mon foyer"
+          backTo="/"
+          subtitle="Gérez les personnes de votre compte"
+        />
+
+        <div className={styles.toolbar}>
+          <p className={styles.count}>
+            <strong>{MOCK_HOUSEHOLD.length}</strong> personnes rattachées
+          </p>
+          <Button className={styles.toolbarBtn}>
+            <PlusIcon />
+            Ajouter une personne
+          </Button>
+        </div>
+
+        <ul className={styles.memberGrid} aria-label="Membres du foyer">
+          {MOCK_HOUSEHOLD.map((member) => (
+            <li key={member.id}>
+              <Card className={styles.memberCard}>
+                <button type="button" className={styles.memberBtn}>
+                  <Avatar
+                    name={`${member.firstName} ${member.lastName}`}
+                    size="md"
+                    character={member.character}
+                  />
+
+                  <div className={styles.memberBody}>
+                    <div className={styles.memberTop}>
+                      <span className={styles.memberName}>
+                        {member.firstName} {member.lastName}
+                      </span>
+                      {member.isSelf && (
+                        <span className={styles.youBadge}>Vous</span>
+                      )}
+                    </div>
+
+                    <div className={styles.memberTags}>
+                      <span className={styles.tag}>{member.role}</span>
+                      <span className={styles.tag}>{member.age} ans</span>
+                    </div>
+
+                    <span
+                      className={[styles.status, statusClass(member.status)].join(' ')}
+                    >
+                      <span className={styles.statusDot} aria-hidden="true" />
+                      {member.status}
+                    </span>
+                  </div>
+
+                  <ChevronRight />
+                </button>
+              </Card>
+            </li>
+          ))}
+        </ul>
+
+        <div className={styles.addSection}>
+          <button type="button" className={styles.addDashed}>
+            <span className={styles.addIcon} aria-hidden="true">
+              <PlusIcon />
+            </span>
+            <span className={styles.addLabel}>Ajouter une personne</span>
+            <span className={styles.addHint}>
+              Enfant, conjoint ou personne à charge
+            </span>
+          </button>
+
+          <Button fullWidth className={styles.mobileAddBtn}>
+            <PlusIcon />
+            Ajouter une personne
+          </Button>
+        </div>
+      </div>
+    </AppLayout>
+  )
+}

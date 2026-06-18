@@ -16,6 +16,10 @@ import { AddIdentityPage } from './pages/mobility/AddIdentityPage'
 import { IdentityDetailPage } from './pages/mobility/IdentityDetailPage'
 import { MobilityHubPage } from './pages/mobility/MobilityHubPage'
 import { SubscribePage } from './pages/mobility/SubscribePage'
+import { MonDossierPage } from './pages/MonDossierPage'
+import { MonEspacePage } from './pages/MonEspacePage'
+import { MonFoyerPage } from './pages/MonFoyerPage'
+import { NouvelleSouscriptionPage } from './pages/NouvelleSouscriptionPage'
 import {
   homeForZone,
   loginForZone,
@@ -96,6 +100,12 @@ export default function App() {
               </PublicRoute>
             }
           />
+
+          {/* ── Écrans maquette (features/design/views) ── */}
+          <Route path="/espace" element={<MonEspacePage />} />
+          <Route path="/dossier" element={<MonDossierPage />} />
+          <Route path="/foyer" element={<MonFoyerPage />} />
+          <Route path="/souscription/nouvelle" element={<NouvelleSouscriptionPage />} />
 
           {/* ── Mobilité : auth ── */}
           <Route path="/auth/callback" element={<AuthCallback zone="mobility" />} />
