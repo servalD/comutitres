@@ -65,16 +65,11 @@
 .beneficiary {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   margin-top: 4px;
   font-size: 14px;
   color: var(--color-text-muted);
-}
-
-.beneficiary svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
+  font-weight: 500;
 }
 
 /* ── Stepper ── */

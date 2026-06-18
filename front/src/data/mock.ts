@@ -1,6 +1,9 @@
+export type CharacterId = 'marie' | 'lea'
+
 export const MOCK_USER = {
   firstName: 'Marie',
   lastName: 'Dupont',
+  character: 'marie' as CharacterId,
 }
 
 export const MOCK_HOUSEHOLD = [
@@ -12,6 +15,7 @@ export const MOCK_HOUSEHOLD = [
     role: 'Payeur' as const,
     status: 'Navigo Annuel actif',
     isSelf: true,
+    character: 'marie' as CharacterId,
   },
   {
     id: '2',
@@ -21,6 +25,7 @@ export const MOCK_HOUSEHOLD = [
     role: 'Junior' as const,
     status: 'Dossier en cours',
     isSelf: false,
+    character: 'lea' as CharacterId,
   },
 ]
 
@@ -28,6 +33,7 @@ export const MOCK_DOSSIER = {
   product: 'Imagine R Junior',
   beneficiaryFirstName: 'Léa',
   beneficiaryFullName: 'Léa Dupont',
+  beneficiaryCharacter: 'lea' as const,
   currentStep: 2,
   totalSteps: 5,
   steps: [
@@ -42,6 +48,7 @@ export const MOCK_DOSSIER = {
 export const MOCK_DOSSIER_DETAIL = {
   product: 'Imagine R Junior',
   beneficiaryFullName: 'Léa Dupont',
+  beneficiaryCharacter: 'lea' as const,
   currentStep: 2,
   totalSteps: 5,
   steps: [

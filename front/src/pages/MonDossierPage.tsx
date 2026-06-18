@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { AppLayout } from '../components/layout/AppLayout'
 import { PageHeader } from '../components/layout/PageHeader'
+import { Avatar } from '../components/ui/Avatar'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { DocumentRow } from '../components/ui/DocumentRow'
@@ -9,20 +10,6 @@ import { Stepper } from '../components/ui/Stepper'
 import { UploadZone } from '../components/ui/UploadZone'
 import { MOCK_DOSSIER_DETAIL } from '../data/mock'
 import styles from './MonDossierPage.module.css'
-
-function PersonIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
-      <path
-        d="M4 20c0-4 3.6-7 8-7s8 3 8 7"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
-}
 
 function IdCardIcon() {
   return (
@@ -127,6 +114,7 @@ export function MonDossierPage() {
   const {
     product,
     beneficiaryFullName,
+    beneficiaryCharacter,
     currentStep,
     steps,
     justificatifs,
@@ -149,7 +137,11 @@ export function MonDossierPage() {
           <div className={styles.summaryInfo}>
             <h2 className={styles.productName}>{product}</h2>
             <p className={styles.beneficiary}>
-              <PersonIcon />
+              <Avatar
+                name={beneficiaryFullName}
+                size="sm"
+                character={beneficiaryCharacter}
+              />
               {beneficiaryFullName}
             </p>
           </div>

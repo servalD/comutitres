@@ -173,7 +173,7 @@ export function MonEspacePage() {
                     <Avatar
                       name={`${member.firstName} ${member.lastName}`}
                       size="sm"
-                      variant={member.isSelf ? 'default' : 'child'}
+                      character={member.character}
                     />
                     <div className={styles.memberInfo}>
                       <div className={styles.memberTop}>

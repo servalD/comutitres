@@ -1,12 +1,22 @@
+import type { ReactElement } from 'react'
+import { LeaCharacter, MarieCharacter } from './characters'
 import styles from './Avatar.module.css'
+
+export type CharacterId = 'marie' | 'lea'
 
 interface AvatarProps {
   name: string
   size?: 'sm' | 'md' | 'lg'
+  character?: CharacterId
   variant?: 'default' | 'child'
 }
 
 const COLORS = ['#64b5f6', '#1972d2', '#f39224', '#007d44', '#4f338b']
+
+const CHARACTERS: Record<CharacterId, () => ReactElement> = {
+  marie: MarieCharacter,
+  lea: LeaCharacter,
+}
 
 function getInitials(name: string) {
   return name
@@ -22,7 +32,37 @@ function getColor(name: string) {
   return COLORS[index]
 }
 
-export function Avatar({ name, size = 'md', variant = 'default' }: AvatarProps) {
+function inferCharacter(
+  character: CharacterId | undefined,
+  variant: 'default' | 'child',
+): CharacterId | undefined {
+  if (character) return character
+  if (variant === 'child') return 'lea'
+  return undefined
+}
+
+export function Avatar({
+  name,
+  size = 'md',
+  character,
+  variant = 'default',
+}: AvatarProps) {
+  const resolvedCharacter = inferCharacter(character, variant)
+  const CharacterIllustration = resolvedCharacter
+    ? CHARACTERS[resolvedCharacter]
+    : null
+
+  if (CharacterIllustration) {
+    return (
+      <div
+        className={[styles.avatar, styles.character, styles[size]].join(' ')}
+        aria-hidden="true"
+      >
+        <CharacterIllustration />
+      </div>
+    )
+  }
+
   return (
     <div
       className={[styles.avatar, styles[size], styles[variant]].join(' ')}
