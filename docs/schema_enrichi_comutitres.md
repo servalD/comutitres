@@ -2,7 +2,7 @@
 
 > Objectif : **cartographie métier complète** : parcours utilisateur, règles produit, modèle de données, cycle de vie, droits, justificatifs, paiements, SAV, back-office, API, IA, conformité et pilotage.
 >
-> Dernière mise à jour : 2026-06-16.
+> Dernière mise à jour : 2026-06-18.
 
 ---
 
@@ -889,6 +889,43 @@ Demande changement payeur
    └── historiser date d'effet
 ```
 
+### 16.5 Flux des "Supports Retrouvés" (SAV en agence)
+
+Le flux des supports retrouvés gère le cas des pass Navigo égarés et rapportés en agence commerciale. Ce flux est orchestré de manière sécurisée en distinguant les supports connus, inconnus ou à risque, et en gérant la restitution ou la mise au rebut.
+
+```text
+Déclaration d'un support trouvé en agence (Agent)
+   │
+   ├── Saisie du numéro de support et de l'agence de dépôt
+   ├── Détection de signaux sensibles (Impayé, Fraude, Litige)
+   │
+   ├── Système évalue le support :
+   │    ├── Connu & Actif ──────► Décision : FOUND_PICKUP_ALLOWED (Retrait autorisé)
+   │    ├── Connu & Perdu ──────► Décision : CONTROLLED_REUSE_ELIGIBLE (Réutilisation contrôlée)
+   │    ├── Déjà remplacé ──────► Décision : SUPPORT_ALREADY_REPLACED (Déjà remplacé)
+   │    ├── Volé ou avec risques ──► Décision : BACKOFFICE_REVIEW_REQUIRED (Revue back-office nécessaire)
+   │    ├── Inutilisable (Révoqué/Expiré) ──► Décision : SUPPORT_UNUSABLE (Inutilisable)
+   │    └── Inconnu au SI ──────► Décision : UNKNOWN_SUPPORT (Support non reconnu)
+   │
+   ├── Stratégie de notification :
+   │    ├── PICKUP_AVAILABLE (Message au porteur)
+   │    ├── LEGAL_GUARDIAN_OR_PAYER (Message au tuteur/payeur si mineur)
+   │    ├── SECURITY_NOTICE (Alerte de sécurité)
+   │    └── REVIEW_BEFORE_NOTIFICATION (Attente revue agent)
+   │
+   └── Clôture du dossier (Sous 30 jours) :
+        ├── Retrait contrôlé (WITHDRAWN) ─► Contrôle d'identité + Preuve ─► Support réactivé (ACTIVE)
+        ├── Non réclamé (NOT_CLAIMED) ───► Passage du délai de 30 jours ──► Support archivé (SUPPORT_NON_RECLAME)
+        ├── Unusable / Rebut (UNUSABLE_CONFIRMED) ───────────────────────► Support détruit (REVOKED)
+        └── Renvoi au Back-office (SENT_TO_BACKOFFICE)
+```
+
+#### Cycle de vie des états du support trouvé
+- **En cours d'analyse / Stocké (agence)** : Le support est enregistré en agence et mis de côté pendant la période de garde (30 jours).
+- **Restitué (withdrawn)** : Le support a été remis au porteur après un contrôle d'identité positif et enregistrement d'une référence de preuve de retrait. Le statut repasse à `active`.
+- **Mis au rebut / Détruit (revoked/unusable_confirmed)** : Le support était inutilisable, déjà remplacé ou expiré. Il est physiquement détruit.
+- **Non réclamé (support_non_reclame)** : Le support n'a pas été retiré à l'issue du délai réglementaire de 30 jours.
+
 ---
 
 ## 17. TST et droits temporaires
@@ -1025,6 +1062,7 @@ file_tst_fin_de_droit
 file_renouvellements_a_preparer
 file_supports_a_remplacer
 file_sav_perte_vol_hs
+file_supports_retrouves
 file_reclamations_facture
 file_recours_refus
 ```
@@ -1512,7 +1550,7 @@ COMPTE IDFM CONNECT
 │   ├── renouvellement
 │   ├── gestion droit / réduction
 │   ├── paiement / régularisation
-│   ├── SAV support / téléphone
+│   ├── SAV support / téléphone / supports retrouvés
 │   └── autonomie porteur / changement payeur
 │
 ├── OBJETS MÉTIER
@@ -1553,7 +1591,7 @@ COMPTE IDFM CONNECT
 │   ├── contrôle photo
 │   ├── impayés / recouvrement
 │   ├── TST / Améthyste
-│   ├── SAV
+│   ├── SAV (perte, vol, abîmé, retrouvé)
 │   ├── fraude
 │   ├── supervision IA/API
 │   └── reporting
