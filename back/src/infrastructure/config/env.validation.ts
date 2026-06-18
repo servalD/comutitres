@@ -129,6 +129,15 @@ export const envSchema = z
       .default('https://api-sandbox.yousign.app/v3'),
     YOUSIGN_WEBHOOK_SECRET: z.string().default(''),
     YOUSIGN_DELIVERY_MODE: z.enum(['email', 'none']).default('none'),
+
+    // Mistral AI — powers the RAG chatbot (embeddings + chat). The key may be
+    // injected via MISTRAL_API_KEY_FILE (Docker/Swarm secret) thanks to the
+    // _FILE expansion above. Optional so the app still boots without it; the
+    // chatbot endpoint returns a clear error when it is missing.
+    MISTRAL_API_KEY: z.string().min(1).optional(),
+    MISTRAL_BASE_URL: z.string().url().optional(),
+    MISTRAL_CHAT_MODEL: z.string().default('ministral-3b-2512'),
+    MISTRAL_EMBED_MODEL: z.string().default('mistral-embed'),
   })
   .superRefine((config, ctx) => {
     if (config.FRANCECONNECT_MODE === 'sandbox') {

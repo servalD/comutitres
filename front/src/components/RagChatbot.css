@@ -1,128 +1,80 @@
-.rag-fab {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 9998;
-  width: 56px;
-  height: 56px;
-  border: none;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  color: #fff;
-  font-size: 1.5rem;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* The markdown plugin renders bot answers as real HTML (<h2>, <a>, <code>, <li>…).
+ * The app's global.css forces those elements to dark brand colors, which then
+ * land on RCB's colored bubbles. Force markdown children to inherit the bubble's
+ * own text color so contrast is always correct, and give links a readable color
+ * per bubble. */
+/* !important is required: the markdown plugin injects theme colors (assuming a
+ * white-on-dark bubble), which made bold/links invisible on our light bot bubble. */
+.rcb-bot-message :where(h1, h2, h3, h4, h5, h6, p, li, ul, ol, strong, b, em, i, blockquote, code, pre, span),
+.rcb-user-message :where(h1, h2, h3, h4, h5, h6, p, li, ul, ol, strong, b, em, i, blockquote, code, pre, span) {
+  color: inherit !important;
 }
 
-.rag-fab__dot {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #f59e0b;
-  border: 2px solid #fff;
-  animation: rag-pulse 1.4s ease-in-out infinite;
+/* Keep bold actually bold (some resets/plugins drop the weight). */
+.rcb-bot-message :where(strong, b),
+.rcb-user-message :where(strong, b) {
+  font-weight: 700;
 }
 
-@keyframes rag-pulse {
-  0%,
-  100% {
-    opacity: 1;
+/* Headings inside answers shouldn't be oversized in a chat bubble. */
+.rcb-bot-message :where(h1, h2, h3, h4) {
+  font-size: 1em;
+  margin: 0.4em 0 0.2em;
+}
+
+/* Links: readable on each background. */
+.rcb-bot-message a {
+  color: #1972d2 !important;
+  text-decoration: underline;
+}
+.rcb-user-message a {
+  color: #ffffff !important;
+  text-decoration: underline;
+}
+
+/* Inline code / code blocks: subtle, contrast-safe on each bubble. */
+.rcb-bot-message :where(code, pre) {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  padding: 0.1em 0.3em;
+}
+.rcb-user-message :where(code, pre) {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  padding: 0.1em 0.3em;
+}
+
+/* Tidy list spacing. */
+.rcb-bot-message :where(ul, ol),
+.rcb-user-message :where(ul, ol) {
+  margin: 0.3em 0;
+  padding-left: 1.2em;
+}
+
+/* ── Responsive: full-screen chat window on phones/tablets ──────────────────
+ * On small screens the fixed-size popup is awkward; make it fill the viewport.
+ * !important beats the inline chatWindowStyle set on the window element. */
+@media (max-width: 600px) {
+  .rcb-chat-window {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: 100vw !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
   }
-  50% {
-    opacity: 0.4;
+
+  /* Bigger tap targets and comfortable text on mobile. */
+  .rcb-chat-input-textarea,
+  .rcb-bot-message,
+  .rcb-user-message {
+    font-size: 16px !important; /* avoids iOS zoom-on-focus */
   }
-}
 
-.rag-panel {
-  position: fixed;
-  right: 24px;
-  bottom: 92px;
-  z-index: 9999;
-  width: min(420px, calc(100vw - 32px));
-  height: min(620px, calc(100vh - 120px));
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-}
-
-.rag-chatbot {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-/* Make react-chatbotify fill the relative container in embedded mode. */
-.rag-chatbot .rcb-chat-window {
-  width: 100%;
-  height: 100%;
-}
-
-.rag-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(2px);
-  border-radius: 12px;
-}
-
-.rag-overlay__card {
-  width: 100%;
-  max-width: 340px;
-  text-align: center;
-}
-
-.rag-overlay__title {
-  margin: 0 0 1rem;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #1a1a2e;
-}
-
-.rag-progress {
-  width: 100%;
-  height: 10px;
-  background: #e6e6ef;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.rag-progress__bar {
-  height: 100%;
-  background: linear-gradient(90deg, #4f46e5, #7c3aed);
-  border-radius: 999px;
-  transition: width 0.25s ease;
-}
-
-.rag-overlay__text {
-  margin: 0.75rem 0 0.25rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.rag-overlay__sub {
-  margin: 0;
-  font-size: 0.8rem;
-  color: #666;
-  min-height: 1.1em;
-  word-break: break-word;
-}
-
-.rag-overlay__hint {
-  margin: 1rem 0 0;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  color: #888;
+  /* Keep the launcher button clear of the screen edges / safe areas. */
+  .rcb-toggle-button {
+    right: max(16px, env(safe-area-inset-right)) !important;
+    bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  }
 }

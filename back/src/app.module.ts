@@ -8,6 +8,7 @@ import { ContractsModule } from './modules/contracts/contracts.module';
 import { ExternalApisModule } from './modules/external-apis/external-apis.module';
 import { JustificatifsModule } from './modules/justificatifs/justificatifs.module';
 import { MobilityModule } from './modules/mobility/mobility.module';
+import { RagModule } from './modules/rag/rag.module';
 import { UsersModule } from './modules/users/users.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { AuthGuard } from './shared/guards/auth.guard';
@@ -28,6 +29,7 @@ import { HealthController } from './health.controller';
     ContractsModule,
     JustificatifsModule,
     WebhooksModule,
+    RagModule,
   ],
   controllers: [HealthController],
   providers: [
