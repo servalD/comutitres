@@ -1,13 +1,36 @@
-import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
-import { AuthProvider } from './auth/auth-context'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { AppShell } from './components/layout/AppShell'
-import { AuthCallbackPage } from './pages/auth/AuthCallbackPage'
-import { LoginPage } from './pages/auth/LoginPage'
+import Login from './routes/Login'
+import Register from './routes/Register'
+import AuthCallback from './routes/AuthCallback'
 import { AddIdentityPage } from './pages/mobility/AddIdentityPage'
 import { IdentityDetailPage } from './pages/mobility/IdentityDetailPage'
 import { MobilityHubPage } from './pages/mobility/MobilityHubPage'
 import { SubscribePage } from './pages/mobility/SubscribePage'
-import { ProtectedRoute } from './routes/ProtectedRoute'
+
+function ProtectedRoute() {
+  const { token, isLoading } = useAuth()
+  const location = useLocation()
+
+  if (isLoading) return null
+  if (!token) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  }
+
+  return <Outlet />
+}
+
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { token, isLoading } = useAuth()
+
+  if (isLoading) return null
+  if (token) {
+    return <Navigate to="/mobility" replace />
+  }
+
+  return <>{children}</>
+}
 
 function IdentityDetailRoute() {
   const { id } = useParams()
@@ -16,11 +39,27 @@ function IdentityDetailRoute() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         <Routes>
-          <Route path="/auth/callback" element={<AuthCallbackPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <Register />
+              </PublicRoute>
+            }
+          />
 
           <Route element={<ProtectedRoute />}>
             <Route element={<AppShell />}>
@@ -34,7 +73,7 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/mobility" replace />} />
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }
