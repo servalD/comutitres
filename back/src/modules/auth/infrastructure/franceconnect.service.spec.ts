@@ -79,7 +79,10 @@ describe('FranceConnectService', () => {
 
     expect(identity.subject).toBe('fc-sandbox-fallback-sandbox-code');
     expect(identity.email).toBe('mock.user@franceconnect.test');
-    expect(identity.displayName).toBe('Mock FranceConnect User');
+    expect(identity.displayName).toBe('Marie Dupont');
+    expect(identity.givenName).toBe('Marie');
+    expect(identity.familyName).toBe('Dupont');
+    expect(identity.birthDate).toBe('1990-03-15');
   });
 
   it('keeps live mode strict when fallback is disabled', async () => {
