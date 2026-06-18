@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { AppShell } from './components/layout/AppShell'
+import { RagChatbot } from './components/RagChatbot'
 import Landing from './routes/Landing'
 import Login from './routes/Login'
 import Register from './routes/Register'
@@ -157,6 +158,7 @@ export default function App() {
 
           <Route path="*" element={<MobilityFallback />} />
         </Routes>
+        <RagChatbot />
       </AuthProvider>
     </BrowserRouter>
   )
