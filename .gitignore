@@ -58,3 +58,9 @@ crash.log
 ansible/inventory.ini
 ansible/roles/
 ansible/group_vars/vault.yml
+
+# foundry
+chain/lib/
+chain/cache/
+chain/out/
+chain/broadcast/
