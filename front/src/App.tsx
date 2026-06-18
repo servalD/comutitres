@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { MonDossierPage } from './pages/MonDossierPage'
 import { MonEspacePage } from './pages/MonEspacePage'
 import { MonFoyerPage } from './pages/MonFoyerPage'
+import { NouvelleSouscriptionPage } from './pages/NouvelleSouscriptionPage'
 
 export default function App() {
   return (
@@ -10,6 +11,7 @@ export default function App() {
         <Route path="/" element={<MonEspacePage />} />
         <Route path="/dossier" element={<MonDossierPage />} />
         <Route path="/foyer" element={<MonFoyerPage />} />
+        <Route path="/souscription/nouvelle" element={<NouvelleSouscriptionPage />} />
       </Routes>
     </BrowserRouter>
   )

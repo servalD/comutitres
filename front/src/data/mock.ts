@@ -80,3 +80,51 @@ export const MOCK_DOSSIER_DETAIL = {
   ],
   processingDelay: 'Délai de traitement : 5 à 10 jours ouvrés',
 }
+
+export type BeneficiaryChoice = 'self' | 'child' | 'other'
+
+export type SubscriptionProductId =
+  | 'navigo-annuel'
+  | 'imagine-r-junior'
+  | 'imagine-r-scolaire'
+
+export type PaymentMethod = 'card' | 'direct-debit'
+
+export const MOCK_SUBSCRIPTION = {
+  totalSteps: 6,
+  products: [
+    {
+      id: 'navigo-annuel' as const,
+      label: 'Navigo Annuel',
+      price: '894,40 € / an',
+      forBeneficiary: ['self'] as BeneficiaryChoice[],
+    },
+    {
+      id: 'imagine-r-junior' as const,
+      label: 'Imagine R Junior',
+      price: '24,00 € / an',
+      forBeneficiary: ['child'] as BeneficiaryChoice[],
+    },
+    {
+      id: 'imagine-r-scolaire' as const,
+      label: 'Imagine R Scolaire',
+      price: '24,00 € / an',
+      forBeneficiary: ['child', 'other'] as BeneficiaryChoice[],
+    },
+  ],
+  beneficiaryOptions: [
+    { id: 'self' as const, label: 'Moi-même' },
+    { id: 'child' as const, label: 'Mon enfant' },
+    { id: 'other' as const, label: 'Une autre personne' },
+  ],
+  beneficiaryForm: {
+    firstName: 'Léa',
+    lastName: 'Dupont',
+    birthDate: '2017-05-12',
+    email: 'marie.dupont@email.fr',
+  },
+  payment: {
+    amount: '24,00 €',
+    label: 'Imagine R Junior — année scolaire',
+  },
+}
