@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { AppShell } from './components/layout/AppShell'
+import Landing from './routes/Landing'
 import Login from './routes/Login'
 import Register from './routes/Register'
 import AuthCallback from './routes/AuthCallback'
@@ -19,6 +20,7 @@ import {
   loginForZone,
   loginPathForReturnTo,
   MOBILITY_HOME,
+  MOBILITY_LOGIN,
   TITRES_HOME,
   type AuthZone,
 } from './auth/auth-zones'
@@ -63,9 +65,20 @@ function IdentityDetailRoute() {
 }
 
 function MobilityFallback() {
+  const { token, isLoading } = useAuth()
   const location = useLocation()
-  const loginTo = loginPathForReturnTo(location.pathname)
-  return <Navigate to={loginTo} replace />
+
+  if (isLoading) {
+    return <p style={{ padding: '2rem', textAlign: 'center' }}>Chargement…</p>
+  }
+  if (!token) {
+    const loginTo = loginPathForReturnTo(location.pathname)
+    if (loginTo !== MOBILITY_LOGIN) {
+      return <Navigate to={loginTo} replace state={{ from: location.pathname }} />
+    }
+    return <Navigate to="/" replace />
+  }
+  return <Navigate to={MOBILITY_HOME} replace />
 }
 
 export default function App() {
@@ -73,6 +86,16 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          {/* ── Accueil public ── */}
+          <Route
+            path="/"
+            element={
+              <PublicRoute zone="mobility">
+                <Landing />
+              </PublicRoute>
+            }
+          />
+
           {/* ── Mobilité : auth ── */}
           <Route path="/auth/callback" element={<AuthCallback zone="mobility" />} />
           <Route
@@ -115,7 +138,6 @@ export default function App() {
           <Route element={<ProtectedRoute zone="mobility" />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route element={<AppShell />}>
-              <Route path="/" element={<Navigate to={MOBILITY_HOME} replace />} />
               <Route path="/mobility" element={<MobilityHubPage />} />
               <Route path="/mobility/new" element={<AddIdentityPage />} />
               <Route path="/mobility/:id/subscribe" element={<SubscribePage />} />
