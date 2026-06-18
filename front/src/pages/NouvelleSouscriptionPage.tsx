@@ -1,18 +1,24 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { SubscriptionWizardShell } from '../components/layout/SubscriptionWizardShell'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { InfoBanner } from '../components/ui/InfoBanner'
 import { SelectionCard } from '../components/ui/SelectionCard'
 import { WizardStepper } from '../components/ui/WizardStepper'
+import { useAuth } from '../contexts/AuthContext'
+import type { SubscriptionBeneficiaryView } from '../data/household-from-api'
 import {
   MOCK_SUBSCRIPTION,
   type BeneficiaryChoice,
   type PaymentMethod,
   type SubscriptionProductId,
 } from '../data/mock'
+import { useSubscriptionBeneficiaries } from '../hooks/useSubscriptionBeneficiaries'
 import styles from './NouvelleSouscriptionPage.module.css'
+
+const ADD_PERSON_PATH = '/mobility/new'
+const RETURN_PATH = '/souscription/nouvelle'
 
 function SelfIcon() {
   return (
@@ -42,7 +48,7 @@ function ChildIcon() {
   )
 }
 
-function OtherIcon() {
+function AddPersonIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path
@@ -96,50 +102,75 @@ function TicketIcon() {
   )
 }
 
-const BENEFICIARY_ICONS = {
-  self: <SelfIcon />,
-  child: <ChildIcon />,
-  other: <OtherIcon />,
+function beneficiaryIcon(person: SubscriptionBeneficiaryView) {
+  if (person.isSelf || person.age >= 18) return <SelfIcon />
+  return <ChildIcon />
 }
 
-function getDefaultProductForBeneficiary(
-  beneficiary: BeneficiaryChoice,
+function beneficiaryLabel(person: SubscriptionBeneficiaryView) {
+  const fullName = `${person.firstName} ${person.lastName}`
+  return person.isSelf ? `${fullName} (Vous)` : fullName
+}
+
+function getDefaultProductForCategory(
+  category: BeneficiaryChoice,
   products: typeof MOCK_SUBSCRIPTION.products,
 ): SubscriptionProductId {
-  const suggested = products.find((p) => p.forBeneficiary.includes(beneficiary))
+  const suggested = products.find((p) => p.forBeneficiary.includes(category))
   return suggested?.id ?? products[0].id
 }
 
 export function NouvelleSouscriptionPage() {
-  const { totalSteps, products, beneficiaryOptions, beneficiaryForm } =
-    MOCK_SUBSCRIPTION
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  const { totalSteps, products } = MOCK_SUBSCRIPTION
+  const { beneficiaries, loading, error } = useSubscriptionBeneficiaries()
+
+  const defaultBeneficiary = beneficiaries.find((b) => b.isSelf) ?? beneficiaries[0]
 
   const [step, setStep] = useState(1)
-  const [beneficiary, setBeneficiary] = useState<BeneficiaryChoice>('self')
+  const [selectedBeneficiaryId, setSelectedBeneficiaryId] = useState<string | null>(
+    null,
+  )
   const [productId, setProductId] = useState<SubscriptionProductId>(() =>
-    getDefaultProductForBeneficiary('self', products),
+    getDefaultProductForCategory(
+      defaultBeneficiary?.productCategory ?? 'self',
+      products,
+    ),
   )
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card')
+
+  const effectiveBeneficiaryId =
+    selectedBeneficiaryId &&
+    beneficiaries.some((person) => person.id === selectedBeneficiaryId)
+      ? selectedBeneficiaryId
+      : defaultBeneficiary?.id ?? null
+
+  const selectedBeneficiary =
+    beneficiaries.find((person) => person.id === effectiveBeneficiaryId) ??
+    defaultBeneficiary
+
+  const contactEmail =
+    user?.email ?? MOCK_SUBSCRIPTION.beneficiaryForm.email
 
   const selectedProduct =
     products.find((p) => p.id === productId) ?? products[0]
 
-  const beneficiaryLabel =
-    beneficiaryOptions.find((o) => o.id === beneficiary)?.label ?? ''
+  const productCategory = selectedBeneficiary?.productCategory ?? 'self'
 
   const suggestedProducts = useMemo(
-    () => products.filter((p) => p.forBeneficiary.includes(beneficiary)),
-    [products, beneficiary],
+    () => products.filter((p) => p.forBeneficiary.includes(productCategory)),
+    [products, productCategory],
   )
 
   const otherProducts = useMemo(
-    () => products.filter((p) => !p.forBeneficiary.includes(beneficiary)),
-    [products, beneficiary],
+    () => products.filter((p) => !p.forBeneficiary.includes(productCategory)),
+    [products, productCategory],
   )
 
-  const handleBeneficiaryChange = (choice: BeneficiaryChoice) => {
-    setBeneficiary(choice)
-    setProductId(getDefaultProductForBeneficiary(choice, products))
+  const handleBeneficiaryChange = (person: SubscriptionBeneficiaryView) => {
+    setSelectedBeneficiaryId(person.id)
+    setProductId(getDefaultProductForCategory(person.productCategory, products))
   }
 
   const goNext = () => setStep((s) => Math.min(totalSteps, s + 1))
@@ -148,7 +179,7 @@ export function NouvelleSouscriptionPage() {
   const renderProductList = (items: typeof products, showSuggestedLabel: boolean) => (
     <div className={styles.productList}>
       {items.map((product) => {
-        const isSuggested = product.forBeneficiary.includes(beneficiary)
+        const isSuggested = product.forBeneficiary.includes(productCategory)
 
         return (
           <button
@@ -186,17 +217,34 @@ export function NouvelleSouscriptionPage() {
         return (
           <>
             <h2 className={styles.question}>Pour qui souhaitez-vous souscrire ?</h2>
-            <div className={styles.selectionGrid}>
-              {beneficiaryOptions.map((option) => (
+            {error && (
+              <p className={styles.loadError} role="status">
+                {error} Affichage de démonstration.
+              </p>
+            )}
+            {loading ? (
+              <p className={styles.loadingHint}>Chargement de votre foyer…</p>
+            ) : (
+              <div className={styles.selectionGrid}>
+                {beneficiaries.map((person) => (
+                  <SelectionCard
+                    key={person.id}
+                    label={beneficiaryLabel(person)}
+                    icon={beneficiaryIcon(person)}
+                    selected={effectiveBeneficiaryId === person.id}
+                    onClick={() => handleBeneficiaryChange(person)}
+                  />
+                ))}
                 <SelectionCard
-                  key={option.id}
-                  label={option.label}
-                  icon={BENEFICIARY_ICONS[option.id]}
-                  selected={beneficiary === option.id}
-                  onClick={() => handleBeneficiaryChange(option.id)}
+                  label="Ajouter une personne"
+                  icon={<AddPersonIcon />}
+                  selected={false}
+                  onClick={() =>
+                    navigate(ADD_PERSON_PATH, { state: { from: RETURN_PATH } })
+                  }
                 />
-              ))}
-            </div>
+              </div>
+            )}
             <InfoBanner>
               Si la personne est mineure, vous devrez renseigner le payeur.
             </InfoBanner>
@@ -207,23 +255,35 @@ export function NouvelleSouscriptionPage() {
         return (
           <>
             <h2 className={styles.question}>Informations du bénéficiaire</h2>
-            <Card className={styles.formCard}>
+            <Card key={selectedBeneficiary?.id} className={styles.formCard}>
               <div className={styles.fieldGrid}>
                 <label className={styles.field}>
                   <span>Prénom</span>
-                  <input type="text" defaultValue={beneficiaryForm.firstName} readOnly />
+                  <input
+                    type="text"
+                    defaultValue={selectedBeneficiary?.firstName ?? ''}
+                    readOnly
+                  />
                 </label>
                 <label className={styles.field}>
                   <span>Nom</span>
-                  <input type="text" defaultValue={beneficiaryForm.lastName} readOnly />
+                  <input
+                    type="text"
+                    defaultValue={selectedBeneficiary?.lastName ?? ''}
+                    readOnly
+                  />
                 </label>
                 <label className={styles.field}>
                   <span>Date de naissance</span>
-                  <input type="date" defaultValue={beneficiaryForm.birthDate} readOnly />
+                  <input
+                    type="date"
+                    defaultValue={selectedBeneficiary?.birthDate ?? ''}
+                    readOnly
+                  />
                 </label>
                 <label className={styles.field}>
                   <span>Email de contact</span>
-                  <input type="email" defaultValue={beneficiaryForm.email} readOnly />
+                  <input type="email" defaultValue={contactEmail} readOnly />
                 </label>
               </div>
             </Card>
@@ -238,23 +298,31 @@ export function NouvelleSouscriptionPage() {
               <dl className={styles.recapList}>
                 <div className={styles.recapRow}>
                   <dt>Bénéficiaire</dt>
-                  <dd>{beneficiaryLabel}</dd>
+                  <dd>
+                    {selectedBeneficiary
+                      ? beneficiaryLabel(selectedBeneficiary)
+                      : '—'}
+                  </dd>
                 </div>
                 <div className={styles.recapRow}>
                   <dt>Identité</dt>
                   <dd>
-                    {beneficiaryForm.firstName} {beneficiaryForm.lastName}
+                    {selectedBeneficiary?.firstName} {selectedBeneficiary?.lastName}
                   </dd>
                 </div>
                 <div className={styles.recapRow}>
                   <dt>Date de naissance</dt>
                   <dd>
-                    {new Date(beneficiaryForm.birthDate).toLocaleDateString('fr-FR')}
+                    {selectedBeneficiary?.birthDate
+                      ? new Date(selectedBeneficiary.birthDate).toLocaleDateString(
+                          'fr-FR',
+                        )
+                      : '—'}
                   </dd>
                 </div>
                 <div className={styles.recapRow}>
                   <dt>Email</dt>
-                  <dd>{beneficiaryForm.email}</dd>
+                  <dd>{contactEmail}</dd>
                 </div>
               </dl>
             </Card>
@@ -268,7 +336,7 @@ export function NouvelleSouscriptionPage() {
             <p className={styles.suggestionIntro}>
               Sélectionnez un titre adapté à la situation de{' '}
               <strong>
-                {beneficiaryForm.firstName} {beneficiaryForm.lastName}
+                {selectedBeneficiary?.firstName} {selectedBeneficiary?.lastName}
               </strong>
               .
             </p>
@@ -341,7 +409,7 @@ export function NouvelleSouscriptionPage() {
         <footer className={styles.footer}>
           {step < totalSteps ? (
             <>
-              <Button fullWidth onClick={goNext}>
+              <Button fullWidth onClick={goNext} disabled={loading || !selectedBeneficiary}>
                 Continuer
               </Button>
               {step > 1 && (
@@ -351,7 +419,7 @@ export function NouvelleSouscriptionPage() {
               )}
             </>
           ) : (
-            <Link to="/" className={styles.homeLink}>
+            <Link to="/espace" className={styles.homeLink}>
               <Button fullWidth>Retour à mon espace</Button>
             </Link>
           )}

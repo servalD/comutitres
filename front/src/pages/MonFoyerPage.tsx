@@ -1,9 +1,10 @@
+import { Link } from 'react-router-dom'
 import { AppLayout } from '../components/layout/AppLayout'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Avatar } from '../components/ui/Avatar'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
-import { MOCK_HOUSEHOLD } from '../data/mock'
+import { useHouseholdData } from '../hooks/useHouseholdData'
 import styles from './MonFoyerPage.module.css'
 
 function ChevronRight() {
@@ -39,7 +40,11 @@ function statusClass(status: string) {
   return styles.statusNeutral
 }
 
+const ADD_PERSON_PATH = '/mobility/new'
+
 export function MonFoyerPage() {
+  const { members, loading, error } = useHouseholdData()
+
   return (
     <AppLayout activeTab="foyer">
       <div className={styles.page}>
@@ -49,18 +54,29 @@ export function MonFoyerPage() {
           subtitle="Gérez les personnes de votre compte"
         />
 
+        {error && (
+          <p className={styles.loadError} role="status">
+            {error} Affichage de démonstration.
+          </p>
+        )}
+
         <div className={styles.toolbar}>
           <p className={styles.count}>
-            <strong>{MOCK_HOUSEHOLD.length}</strong> personnes rattachées
+            <strong>{loading ? '…' : members.length}</strong> personnes rattachées
           </p>
-          <Button className={styles.toolbarBtn}>
-            <PlusIcon />
-            Ajouter une personne
-          </Button>
+          <Link to={ADD_PERSON_PATH} state={{ from: '/foyer' }} className={styles.toolbarLink}>
+            <Button className={styles.toolbarBtn}>
+              <PlusIcon />
+              Ajouter une personne
+            </Button>
+          </Link>
         </div>
 
         <ul className={styles.memberGrid} aria-label="Membres du foyer">
-          {MOCK_HOUSEHOLD.map((member) => (
+          {loading ? (
+            <li className={styles.memberLoading}>Chargement du foyer…</li>
+          ) : (
+            members.map((member) => (
             <li key={member.id}>
               <Card className={styles.memberCard}>
                 <button type="button" className={styles.memberBtn}>
@@ -68,6 +84,7 @@ export function MonFoyerPage() {
                     name={`${member.firstName} ${member.lastName}`}
                     size="md"
                     character={member.character}
+                    variant={member.avatarVariant ?? 'default'}
                   />
 
                   <div className={styles.memberBody}>
@@ -97,11 +114,12 @@ export function MonFoyerPage() {
                 </button>
               </Card>
             </li>
-          ))}
+            ))
+          )}
         </ul>
 
         <div className={styles.addSection}>
-          <button type="button" className={styles.addDashed}>
+          <Link to={ADD_PERSON_PATH} state={{ from: '/foyer' }} className={styles.addDashed}>
             <span className={styles.addIcon} aria-hidden="true">
               <PlusIcon />
             </span>
@@ -109,12 +127,14 @@ export function MonFoyerPage() {
             <span className={styles.addHint}>
               Enfant, conjoint ou personne à charge
             </span>
-          </button>
+          </Link>
 
-          <Button fullWidth className={styles.mobileAddBtn}>
-            <PlusIcon />
-            Ajouter une personne
-          </Button>
+          <Link to={ADD_PERSON_PATH} state={{ from: '/foyer' }} className={styles.mobileAddLink}>
+            <Button fullWidth className={styles.mobileAddBtn}>
+              <PlusIcon />
+              Ajouter une personne
+            </Button>
+          </Link>
         </div>
       </div>
     </AppLayout>

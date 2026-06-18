@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { ProgressBar } from '../components/ui/ProgressBar'
 import { Stepper } from '../components/ui/Stepper'
-import { MOCK_DOSSIER, MOCK_HOUSEHOLD, MOCK_USER } from '../data/mock'
+import { useHouseholdData } from '../hooks/useHouseholdData'
 import styles from './MonEspacePage.module.css'
 
 function DossierIcon() {
@@ -87,8 +87,22 @@ function statusClass(status: string) {
 }
 
 export function MonEspacePage() {
-  const { product, beneficiaryFirstName, currentStep, totalSteps, steps } =
-    MOCK_DOSSIER
+  const {
+    greetingFirstName,
+    members,
+    dossier,
+    loading,
+    error,
+  } = useHouseholdData()
+
+  const {
+    product,
+    beneficiaryFirstName,
+    currentStep,
+    totalSteps,
+    steps,
+    stepHint,
+  } = dossier
 
   return (
     <AppLayout activeTab="accueil">
@@ -98,9 +112,14 @@ export function MonEspacePage() {
             <p className={styles.heroEyebrow}>Espace client</p>
             <h1 className={styles.title}>Mon espace</h1>
             <p className={styles.hello}>
-              Bonjour, <strong>{MOCK_USER.firstName}</strong> — retrouvez ici vos
+              Bonjour, <strong>{greetingFirstName}</strong> — retrouvez ici vos
               démarches et les personnes de votre foyer.
             </p>
+            {error && (
+              <p className={styles.loadError} role="status">
+                {error} Affichage de démonstration.
+              </p>
+            )}
           </div>
           <Link to="/souscription/nouvelle" className={styles.heroCta}>
             <Button className={styles.heroCtaBtn}>
@@ -138,9 +157,7 @@ export function MonEspacePage() {
                   <span className={styles.stepLabel}>
                     Étape {currentStep} sur {totalSteps}
                   </span>
-                  <span className={styles.stepHint}>
-                    Complétez vos justificatifs pour avancer dans la demande.
-                  </span>
+                  <span className={styles.stepHint}>{stepHint}</span>
                 </div>
                 <Link to="/dossier" className={styles.continueLink}>
                   <Button>
@@ -168,12 +185,16 @@ export function MonEspacePage() {
               </div>
 
               <ul className={styles.memberList}>
-                {MOCK_HOUSEHOLD.map((member) => (
+                {loading ? (
+                  <li className={styles.memberLoading}>Chargement du foyer…</li>
+                ) : (
+                  members.map((member) => (
                   <li key={member.id} className={styles.memberRow}>
                     <Avatar
                       name={`${member.firstName} ${member.lastName}`}
                       size="sm"
                       character={member.character}
+                      variant={member.avatarVariant ?? 'default'}
                     />
                     <div className={styles.memberInfo}>
                       <div className={styles.memberTop}>
@@ -188,22 +209,23 @@ export function MonEspacePage() {
                         <span className={styles.tag}>{member.role}</span>
                         <span className={styles.tag}>{member.age} ans</span>
                       </div>
+                      <span
+                        className={[styles.status, statusClass(member.status)].join(' ')}
+                      >
+                        <span className={styles.statusDot} aria-hidden="true" />
+                        {member.status}
+                      </span>
                     </div>
-                    <span className={[styles.status, statusClass(member.status)].join(' ')}>
-                      <span className={styles.statusDot} aria-hidden="true" />
-                      {member.status}
-                    </span>
                   </li>
-                ))}
+                  ))
+                )}
               </ul>
-            </Card>
 
-            <div className={styles.sidebarHint}>
-              <p>
+              <p className={styles.foyerHint}>
                 Gérez les personnes rattachées à votre compte et lancez une
                 souscription pour chacune d&apos;elles.
               </p>
-            </div>
+            </Card>
           </aside>
         </div>
 

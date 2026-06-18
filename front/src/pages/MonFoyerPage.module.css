@@ -28,6 +28,16 @@
   height: 18px;
 }
 
+.toolbarLink,
+.mobileAddLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.mobileAddLink {
+  display: block;
+}
+
 .memberGrid {
   list-style: none;
   margin: 0;
@@ -242,6 +252,8 @@
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
     text-align: center;
+    text-decoration: none;
+    color: inherit;
   }
 
   .addDashed:hover {
@@ -302,6 +314,8 @@
     border-radius: var(--radius-lg);
     background: var(--color-white);
     cursor: pointer;
+    text-decoration: none;
+    color: inherit;
   }
 
   .addIcon {
@@ -323,4 +337,16 @@
   .addHint {
     display: none;
   }
+}
+
+.loadError {
+  font-size: 13px;
+  color: var(--color-orange, #f39224);
+}
+
+.memberLoading {
+  padding: var(--space-md);
+  font-size: 14px;
+  color: var(--color-text-muted);
+  list-style: none;
 }
