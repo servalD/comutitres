@@ -3,6 +3,7 @@
 # dependencies
 **/node_modules
 **/.pnpm-store*
+.pnpm-store*
 /.pnp
 .pnp.*
 .yarn/*
@@ -44,3 +45,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# ansible — inventaire généré par terraform, rôles galaxy, vault déchiffré
+ansible/inventory.ini
+ansible/roles/
+ansible/group_vars/vault.yml
+**/dist*
+
+# foundry
+chain/lib/
+chain/cache/
+chain/out/
+chain/broadcast/

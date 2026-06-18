@@ -1,0 +1,65 @@
+.viewport {
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background: var(--blue-light, #f5f9ff);
+}
+
+.frame {
+  width: 100%;
+  max-width: var(--shell-max-mobile, 480px);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--blue-light, #f5f9ff);
+  color: var(--anthracite, #25303b);
+}
+
+.frameElevated,
+.frameWhite {
+  background: #fff;
+}
+
+/* Mobile type app : carte centrée sur tablette étroite */
+@media (min-width: 520px) and (max-width: 767px) {
+  .viewport {
+    padding: 1.5rem 1rem;
+    align-items: flex-start;
+  }
+
+  .viewportWhite {
+    background: #eef2f6;
+  }
+
+  .frame {
+    min-height: calc(100dvh - 3rem);
+    border-radius: 1.5rem;
+    box-shadow:
+      0 24px 64px rgba(37, 48, 59, 0.12),
+      0 0 0 1px rgba(222, 238, 255, 0.9);
+    overflow: hidden;
+  }
+
+  .frameWhite {
+    box-shadow:
+      0 24px 64px rgba(37, 48, 59, 0.14),
+      0 0 0 1px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* Desktop : pleine page */
+@media (min-width: 768px) {
+  .viewportFull {
+    padding: 0;
+    background: #fff;
+  }
+
+  .frameFull {
+    max-width: none;
+    min-height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+}

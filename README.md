@@ -14,10 +14,22 @@ Roles (RBAC: `USER` / `ADMIN`) are **app-managed** in our own database.
 
 > Stripe payments are planned but not implemented yet (see the back architecture doc).
 
+## Documentation
+
+| Sujet | Lien |
+| --- | --- |
+| Dev, test, build Docker | [docker/README.md](docker/README.md) |
+| Infra Azure (Terraform) | [terraform/README.md](terraform/README.md) |
+| Config Swarm & déploiement (Ansible) | [ansible/README.md](ansible/README.md) |
+| Architecture back (hexagonale) | [back/src/ARCHITECTURE.md](back/src/ARCHITECTURE.md) |
+| Auth & providers | [back/src/modules/auth/README.md](back/src/modules/auth/README.md) |
+| Guards & RBAC | [back/src/shared/guards/README.md](back/src/shared/guards/README.md) |
+| Base de données & migrations | [back/src/infrastructure/database/README.md](back/src/infrastructure/database/README.md) |
+
 ## Layout
 
 ```
-front/                  Vite + React SPA (not implemented in this iteration)
+front/                  Vite + React SPA
 back/                   NestJS API (clean architecture)
   src/ARCHITECTURE.md       architecture rules — read before adding code
   src/modules/auth/README.md       auth & providers rules
@@ -25,8 +37,44 @@ back/                   NestJS API (clean architecture)
   src/infrastructure/database/README.md  TypeORM & migrations rules
 docker/                 Dockerfiles live next to each app; compose & swarm here
   README.md                 how to run dev / test / prod / swarm
+docs/                   functional specifications and technical guides
 .github/workflows/      CI (tests), Trivy (security), Release (build+push to GHCR)
+docker/                 Compose files (dev/test/build) + stack Swarm
+terraform/              Infra Azure (3 VMs, VNet, NSG)
+ansible/                Config Swarm + déploiement stack
+.github/workflows/      CI (tests), Trivy (sécurité), Release (build+push GHCR)
 ```
+
+## Infrastructure
+
+```
+Internet
+   │  :80/:443
+   ▼
+┌──────────────────────────────────────────────────────┐
+│  Azure — Docker Swarm (3 nœuds managers)             │
+│                                                      │
+│  node1 [ingress=true]        node2          node3    │
+│  ┌─────────────────────┐                             │
+│  │ Traefik :80/:443    │                             │
+│  │  ├─ /api/*  ──────────────► back (2 replicas)    │
+│  │  ├─ /*      ──────────────► front (2 replicas)   │
+│  │  └─ /.well-known/*         certbot :8080          │
+│  │       (ACME challenge)  │                         │
+│  │ certbot (Let's Encrypt) │    db (Postgres, 1)     │
+│  │  cert IP, 6 j, auto-   │    ▲                    │
+│  │  renew, deploy-hook     │    └── back             │
+│  └─────────────────────┘                             │
+│                                                      │
+│  Overlay networks : frontend (Traefik↔back/front)    │
+│                     backend  (back↔db)               │
+└──────────────────────────────────────────────────────┘
+
+Provisionnement : Terraform (infra Azure) → Ansible (Swarm + stack)
+CI/CD           : push main → build+scan+push GHCR → SSH deploy (migrations → back → front)
+```
+
+→ Détails : [docker/README.md](docker/README.md) · [terraform/README.md](terraform/README.md) · [ansible/README.md](ansible/README.md)
 
 ## Quickstart (local, dev stack)
 
@@ -59,7 +107,6 @@ pnpm test:e2e                                         # e2e (Postgres on :5433)
 
 ## CI/CD
 
-- **CI** runs lint + build + unit + e2e (against a Postgres service) for the back, and lint + build for the front.
-- **Trivy** scans the repo (deps, misconfig, secrets) and the built images; fails on HIGH/CRITICAL.
-- **Release** (on merge to `main`) builds the hardened images, scans them, and pushes to
-  `ghcr.io/<owner>/comutitre-back` and `-front`.
+- **CI** — lint + build + unit + e2e (back), lint + build (front)
+- **Trivy** — scan repo + images ; bloque sur HIGH/CRITICAL
+- **Release** (merge sur `main`) — build images → scan → push `ghcr.io/<owner>/comutitre-{back,front}:<sha>` → deploy Swarm via SSH (migrations → back → front)

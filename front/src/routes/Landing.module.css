@@ -1,0 +1,316 @@
+.landing {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: #fff;
+}
+
+/* ── Header blanc (mobile uniquement) ── */
+.mobileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 1.125rem 1.25rem 1.25rem;
+  background: #fff;
+  border-bottom: 1px solid #f0f4f8;
+}
+
+.idfmLogo {
+  height: 2rem;
+  width: auto;
+  max-width: 10rem;
+  display: block;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.comutitresMarkMobile {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--anthracite, #25303b);
+  letter-spacing: -0.02em;
+}
+
+/* ── Image hero : ~moitié écran sur mobile ── */
+.heroPanel {
+  position: relative;
+  width: 100%;
+  flex: 0 0 auto;
+  height: clamp(12rem, 52dvh, 26rem);
+  overflow: hidden;
+  background: #eef6fd;
+}
+
+.heroImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.heroBrand {
+  display: none;
+}
+
+/* ── Colonne contenu (mobile : texte sous l'image, CTA en bas) ── */
+.contentColumn {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.contentHeader {
+  display: none;
+}
+
+.comutitresMark {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--anthracite, #25303b);
+  letter-spacing: -0.02em;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 1.125rem 1.25rem 1.25rem;
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+}
+
+.headline {
+  margin: 0 0 1rem;
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: #1a2332;
+}
+
+.benefits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.benefit {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1rem;
+  line-height: 1.35;
+  color: #3d4a57;
+}
+
+.benefitIcon {
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 50%;
+  background: var(--blue-int, #1972d2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.benefitIcon svg {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+.actions {
+  margin-top: auto;
+  padding-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.9375rem 1.25rem;
+  border-radius: 0.625rem;
+  background: var(--blue-int, #1972d2);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.cta:hover {
+  background: var(--blue-focus, #0050aa);
+  color: #fff;
+}
+
+.helpLink {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--blue-int, #1972d2);
+  text-decoration: none;
+}
+
+.helpLink:hover {
+  color: var(--blue-focus, #0050aa);
+  text-decoration: underline;
+}
+
+/* ── Desktop : image pleine colonne gauche + logo dessus ── */
+@media (min-width: 768px) {
+  .landing {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    grid-template-rows: 1fr;
+    min-height: 100dvh;
+  }
+
+  .mobileHeader {
+    display: none;
+  }
+
+  .heroPanel {
+    grid-column: 1;
+    grid-row: 1;
+    flex: none;
+    min-height: 100dvh;
+    height: 100%;
+  }
+
+  .heroImage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-position: center;
+  }
+
+  .heroBrand {
+    display: flex;
+    position: absolute;
+    inset: 0 auto auto 0;
+    z-index: 1;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+    padding: 1.5rem 2rem;
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+
+  .heroBrand .idfmLogo {
+    height: 2rem;
+    max-width: 11rem;
+    pointer-events: auto;
+  }
+
+  .contentColumn {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    flex: none;
+  }
+
+  .contentHeader {
+    display: flex;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    padding: 1.5rem 2.5rem 0;
+  }
+
+  .comutitresMark {
+    font-size: 1.125rem;
+  }
+
+  .body {
+    flex: 1;
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 40rem;
+    padding: clamp(1.75rem, 4.5vh, 3rem) 2.5rem clamp(1.75rem, 4.5vh, 3rem) 2.5rem;
+    box-sizing: border-box;
+  }
+
+  .headline {
+    font-size: clamp(2rem, 3.2vw, 2.5rem);
+    margin-top: clamp(4rem, 12vh, 7rem);
+    margin-bottom: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .benefits {
+    gap: clamp(0.875rem, 2vh, 1.25rem);
+    flex: none;
+    margin: 0;
+  }
+
+  .benefit {
+    font-size: 1.0625rem;
+  }
+
+  .benefitIcon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .actions {
+    margin-top: auto;
+    padding-top: 2rem;
+    align-items: stretch;
+    flex-shrink: 0;
+    gap: 1rem;
+  }
+
+  .helpLink {
+    text-align: center;
+  }
+
+  .cta {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    max-width: none;
+  }
+}
+
+@media (min-width: 1200px) {
+  .heroBrand {
+    padding: 2rem 2.5rem;
+  }
+
+  .contentHeader {
+    padding: 2rem 3rem 0;
+  }
+
+  .body {
+    padding: clamp(2rem, 5vh, 3.5rem) 3rem clamp(2rem, 5vh, 3.5rem) 3rem;
+    max-width: 42rem;
+  }
+
+  .headline {
+    font-size: clamp(2.25rem, 3vw, 2.75rem);
+    margin-top: clamp(2.5rem, 6vh, 4rem);
+    margin-bottom: 1.5rem;
+  }
+
+  .benefit {
+    font-size: 1.125rem;
+  }
+
+  .benefits {
+    gap: 1.25rem;
+  }
+}
