@@ -120,6 +120,15 @@ export const envSchema = z
       .url()
       .default('https://api.insee.fr/api-sirene/3.11'),
     SIRENE_API_BEARER_TOKEN: z.string().default(''),
+
+    // YouSign API v3
+    YOUSIGN_API_KEY: z.string().default(''),
+    YOUSIGN_BASE_URL: z
+      .string()
+      .url()
+      .default('https://api-sandbox.yousign.app/v3'),
+    YOUSIGN_WEBHOOK_SECRET: z.string().default(''),
+    YOUSIGN_DELIVERY_MODE: z.enum(['email', 'none']).default('none'),
   })
   .superRefine((config, ctx) => {
     if (config.FRANCECONNECT_MODE === 'sandbox') {

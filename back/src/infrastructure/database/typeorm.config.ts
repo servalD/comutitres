@@ -1,7 +1,10 @@
 import 'dotenv/config';
 import { readFileSync } from 'node:fs';
 import { DataSource, DataSourceOptions } from 'typeorm';
-import { ContractOrmEntity } from '../../modules/mobility/infrastructure/contract.orm-entity';
+import { CgvuAcceptanceOrmEntity } from '../../modules/contracts/infrastructure/cgvu-acceptance.orm-entity';
+import { ContractOrmEntity as SubscriptionContractOrmEntity } from '../../modules/contracts/infrastructure/contract.orm-entity';
+import { JustificatifOrmEntity } from '../../modules/justificatifs/infrastructure/justificatif.orm-entity';
+import { ContractOrmEntity as MobilityContractOrmEntity } from '../../modules/mobility/infrastructure/contract.orm-entity';
 import { DocumentOrmEntity } from '../../modules/mobility/infrastructure/document.orm-entity';
 import { MobilityIdentityOrmEntity } from '../../modules/mobility/infrastructure/mobility-identity.orm-entity';
 import { RelationshipOrmEntity } from '../../modules/mobility/infrastructure/relationship.orm-entity';
@@ -41,10 +44,13 @@ export const dataSourceOptions: DataSourceOptions = {
     UserOrmEntity,
     MobilityIdentityOrmEntity,
     RelationshipOrmEntity,
-    ContractOrmEntity,
+    MobilityContractOrmEntity,
     DocumentOrmEntity,
     SupportOrmEntity,
     TimelineEventOrmEntity,
+    SubscriptionContractOrmEntity,
+    CgvuAcceptanceOrmEntity,
+    JustificatifOrmEntity,
   ],
   migrations: [__dirname + '/migrations/*.{ts,js}'],
   synchronize: false,

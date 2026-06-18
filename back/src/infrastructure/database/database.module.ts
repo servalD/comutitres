@@ -2,7 +2,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Env } from '../config/env.validation';
-import { ContractOrmEntity } from '../../modules/mobility/infrastructure/contract.orm-entity';
+import { CgvuAcceptanceOrmEntity } from '../../modules/contracts/infrastructure/cgvu-acceptance.orm-entity';
+import { ContractOrmEntity as SubscriptionContractOrmEntity } from '../../modules/contracts/infrastructure/contract.orm-entity';
+import { JustificatifOrmEntity } from '../../modules/justificatifs/infrastructure/justificatif.orm-entity';
+import { ContractOrmEntity as MobilityContractOrmEntity } from '../../modules/mobility/infrastructure/contract.orm-entity';
 import { DocumentOrmEntity } from '../../modules/mobility/infrastructure/document.orm-entity';
 import { MobilityIdentityOrmEntity } from '../../modules/mobility/infrastructure/mobility-identity.orm-entity';
 import { RelationshipOrmEntity } from '../../modules/mobility/infrastructure/relationship.orm-entity';
@@ -26,10 +29,13 @@ import { UserOrmEntity } from '../../modules/users/infrastructure/user.orm-entit
           UserOrmEntity,
           MobilityIdentityOrmEntity,
           RelationshipOrmEntity,
-          ContractOrmEntity,
+          MobilityContractOrmEntity,
           DocumentOrmEntity,
           SupportOrmEntity,
           TimelineEventOrmEntity,
+          SubscriptionContractOrmEntity,
+          CgvuAcceptanceOrmEntity,
+          JustificatifOrmEntity,
         ],
         migrations: [__dirname + '/migrations/*.{ts,js}'],
         // Never auto-sync schema: migrations are the single source of truth.
