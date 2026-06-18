@@ -1,20 +1,29 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
+import * as jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { TokenVerifier } from '../src/modules/auth/application/ports/token-verifier.port';
 import { ExternalIdentity } from '../src/modules/auth/domain/external-identity';
+import {
+  AppJwtService,
+  APP_TOKEN_ISSUER,
+} from '../src/modules/auth/infrastructure/app-jwt.service';
 import { AuthProvider } from '../src/modules/users/domain/user';
 import { UserRepository } from '../src/modules/users/domain/user.repository';
 import { Role } from '../src/shared/enums/role.enum';
 
 /**
- * Fake verifier so e2e tests don't depend on Dynamic.xyz. Maps opaque tokens
- * to identities; the rest of the stack (guards, sync, DB, RBAC) is real.
+ * Fake Dynamic verifier for e2e; app session JWTs (register/login/FC) stay real
+ * via AppJwtService so local-auth flows exercise the production path.
  */
-class FakeTokenVerifier extends TokenVerifier {
+class E2eTokenVerifier extends TokenVerifier {
+  constructor(private readonly appJwt: AppJwtService) {
+    super();
+  }
+
   verify(token: string): Promise<ExternalIdentity> {
     if (token === 'valid-token') {
       return Promise.resolve({
@@ -25,6 +34,12 @@ class FakeTokenVerifier extends TokenVerifier {
         displayName: 'E2E User',
       });
     }
+
+    const decoded = jwt.decode(token, { json: true });
+    if (decoded?.iss === APP_TOKEN_ISSUER) {
+      return this.appJwt.verify(token);
+    }
+
     return Promise.reject(new Error('invalid token'));
   }
 }
@@ -38,7 +53,10 @@ describe('Auth & RBAC (e2e)', () => {
       imports: [AppModule],
     })
       .overrideProvider(TokenVerifier)
-      .useClass(FakeTokenVerifier)
+      .useFactory({
+        factory: (appJwt: AppJwtService) => new E2eTokenVerifier(appJwt),
+        inject: [AppJwtService],
+      })
       .compile();
 
     app = moduleFixture.createNestApplication();
