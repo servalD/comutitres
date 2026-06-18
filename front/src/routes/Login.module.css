@@ -25,12 +25,12 @@
   justify-content: center;
   width: 100%;
   max-width: 26rem;
-  padding-top: 0.5rem;
+  padding-top: 3rem;
   margin-bottom: 2rem;
 }
 
 .logo {
-  height: 4rem;
+  height: 5.5rem;
   width: auto;
   object-fit: contain;
 }
@@ -318,9 +318,9 @@
 @media (min-width: 768px) {
   .page {
     background: #fff;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
-    padding: 3rem 2rem max(3rem, env(safe-area-inset-bottom, 0px));
+    padding: 4rem 2rem max(3rem, env(safe-area-inset-bottom, 0px));
   }
 
   .logoWrap {
@@ -332,7 +332,7 @@
   }
 
   .logo {
-    height: 4.5rem;
+    height: 6.5rem;
   }
 
   .card {

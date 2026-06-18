@@ -110,8 +110,8 @@ export default function Login({ zone = 'mobility' }: LoginProps) {
         {/* Logo IDFM — ancré en haut */}
         <div className={styles.logoWrap}>
           <img
-            src="/images/idfm-mobilites-logo.png"
-            alt="Île-de-France Mobilités"
+            src="/images/comutitres-logo.svg"
+            alt="Comutitres"
             className={styles.logo}
           />
         </div>
