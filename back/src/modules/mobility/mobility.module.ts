@@ -89,6 +89,12 @@ import { MobilityController } from './presentation/mobility.controller';
     GetTimelineUseCase,
     ProvisionOwnerMobilityIdentityUseCase,
   ],
-  exports: [ProvisionOwnerMobilityIdentityUseCase],
+  exports: [
+    ProvisionOwnerMobilityIdentityUseCase,
+    MobilityIdentityRepository,
+    RelationshipRepository,
+    DefaultPermissionsService,
+    TimelineRecorderService,
+  ],
 })
 export class MobilityModule {}

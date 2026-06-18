@@ -480,3 +480,54 @@
   color: var(--color-text-muted);
   list-style: none;
 }
+
+.recoveryAlerts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.recoveryCard {
+  border-left: 4px solid var(--color-orange, #f39224);
+  background: #fffaf5;
+}
+
+.recoveryCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.recoveryCardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-anthracite);
+}
+
+.recoveryCardText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.recoveryCardLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: var(--space-xs);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-interaction);
+  text-decoration: none;
+}
+
+.recoveryCardLink svg {
+  width: 16px;
+  height: 16px;
+}
+
+.recoveryCardLink:hover {
+  text-decoration: underline;
+}

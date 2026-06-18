@@ -8,11 +8,14 @@ import type {
   Contract,
   ContractStatus,
   MobilityIdentityWithRelationships,
+  ProductType,
   RelationshipType,
 } from '../domain/types/mobility'
-import { MOCK_DOSSIER, MOCK_HOUSEHOLD, MOCK_SUBSCRIPTION, MOCK_USER } from './mock'
+import { MOCK_DOSSIER, MOCK_HOUSEHOLD, MOCK_PERSON_JULES, MOCK_PERSON_LEA, MOCK_PERSON_MARIE, MOCK_SUBSCRIPTION, MOCK_USER } from './mock'
 import type { BeneficiaryChoice } from './mock'
 import type { Profile } from '../domain/types/mobility'
+
+import type { IdentityStatus } from '../domain/types/mobility'
 
 export type DataSource = 'api' | 'mock'
 
@@ -24,6 +27,7 @@ export interface HouseholdMemberView {
   role: string
   status: string
   isSelf: boolean
+  identityStatus?: IdentityStatus
   character?: CharacterId
   avatarVariant?: 'default' | 'child'
 }
@@ -121,6 +125,7 @@ export function mapIdentityToMember(
     role: mapIdentityRoleTag(identity),
     status: mapContractsToStatusLabel(contracts),
     isSelf: self,
+    identityStatus: identity.status,
     avatarVariant: identity.calculatedAge < 18 ? 'child' : 'default',
   }
 }
@@ -233,6 +238,182 @@ export function mapIdentitiesToSubscriptionBeneficiaries(
   })
 }
 
+export type PersonTitreStatusType = 'active' | 'pending' | 'neutral'
+
+export interface PersonTitreView {
+  label: string
+  validity: string
+  status: string
+  statusType: PersonTitreStatusType
+  productType?: ProductType
+}
+
+export interface PersonDetailView {
+  id: string
+  firstName: string
+  lastName: string
+  age: number
+  profile: string
+  character?: CharacterId
+  roles: {
+    porteurLabel: string
+    payeur: { name: string; isSelf: boolean }
+    responsableLegal: { name: string; isSelf?: boolean }
+  }
+  ageBascule: string | null
+  titre: PersonTitreView | null
+}
+
+export type PersonDetailSection = 'profile' | 'roles' | 'titre' | 'ageBascule'
+
+function findOwnerIdentity(
+  identities: MobilityIdentityWithRelationships[],
+): MobilityIdentityWithRelationships | undefined {
+  return identities.find(isOwner)
+}
+
+function pickPrimaryContract(contracts: Contract[]): Contract | null {
+  return (
+    contracts.find((c) => c.status === 'active') ??
+    contracts.find((c) => PENDING_CONTRACT_STATUSES.includes(c.status)) ??
+    contracts[0] ??
+    null
+  )
+}
+
+function contractToTitreStatusType(status: ContractStatus): PersonTitreStatusType {
+  if (status === 'active') return 'active'
+  if (PENDING_CONTRACT_STATUSES.includes(status)) return 'pending'
+  return 'neutral'
+}
+
+export function mapContractToPersonTitre(contract: Contract): PersonTitreView {
+  const statusType = contractToTitreStatusType(contract.status)
+  const label = productLabels[contract.productType]
+
+  return {
+    label,
+    validity: 'Valable en Île-de-France',
+    status:
+      statusType === 'active'
+        ? `${label} actif`
+        : statusType === 'pending'
+          ? 'Dossier en cours'
+          : mapContractsToStatusLabel([contract]),
+    statusType,
+    productType: contract.productType,
+  }
+}
+
+export function ageBasculeMessage(profile: Profile, age: number): string | null {
+  if (profile === 'junior' && age < 11) {
+    return 'Bascule Scolaire prévue à 11 ans'
+  }
+  if (profile === 'scolaire' && age >= 16) {
+    return 'Compte Connect récupérable — passation disponible'
+  }
+  if (profile === 'scolaire' && age < 15) {
+    return 'Compte Connect disponible à 15 ans'
+  }
+  if (profile === 'adulte' && age >= 16 && age < 62) {
+    return 'Navigo Senior à 62 ans'
+  }
+  return null
+}
+
+function mockPersonFromLegacy(
+  legacy: typeof MOCK_PERSON_LEA | typeof MOCK_PERSON_MARIE | typeof MOCK_PERSON_JULES,
+): PersonDetailView {
+  return {
+    id: legacy.id,
+    firstName: legacy.firstName,
+    lastName: legacy.lastName,
+    age: legacy.age,
+    profile: legacy.profile,
+    character: legacy.character,
+    roles: {
+      porteurLabel: legacy.roles.porteur.label,
+      payeur: {
+        name: legacy.roles.payeur.name,
+        isSelf: legacy.roles.payeur.isSelf,
+      },
+      responsableLegal: {
+        name: legacy.roles.responsableLegal.name,
+        isSelf: legacy.roles.responsableLegal.isSelf,
+      },
+    },
+    ageBascule: legacy.ageBascule,
+    titre: legacy.titre,
+  }
+}
+
+export function mockPersonDetailById(id: string | undefined): PersonDetailView {
+  if (id === MOCK_PERSON_MARIE.id) {
+    return mockPersonFromLegacy(MOCK_PERSON_MARIE)
+  }
+  if (id === MOCK_PERSON_JULES.id || id === MOCK_PERSON_LEA.id) {
+    return mockPersonFromLegacy(MOCK_PERSON_JULES)
+  }
+
+  const member = MOCK_HOUSEHOLD.find((m) => m.id === id)
+  if (member?.isSelf) {
+    return mockPersonFromLegacy(MOCK_PERSON_MARIE)
+  }
+  if (member) {
+    return mockPersonFromLegacy(MOCK_PERSON_JULES)
+  }
+
+  return mockPersonFromLegacy(MOCK_PERSON_JULES)
+}
+
+export function mockPersonDetailByProfile(input: {
+  firstName: string
+  isSelf?: boolean
+}): PersonDetailView {
+  const first = input.firstName.trim().toLowerCase()
+  if (first === 'marie' || input.isSelf) {
+    return mockPersonFromLegacy(MOCK_PERSON_MARIE)
+  }
+  if (first === 'jules') {
+    return mockPersonFromLegacy(MOCK_PERSON_JULES)
+  }
+  return mockPersonFromLegacy(MOCK_PERSON_JULES)
+}
+
+export function mapIdentityToPersonDetail(
+  identity: MobilityIdentityWithRelationships,
+  allIdentities: MobilityIdentityWithRelationships[],
+  contracts: Contract[],
+): PersonDetailView {
+  const owner = findOwnerIdentity(allIdentities)
+  const ownerName = owner
+    ? `${owner.firstName} ${owner.lastName}`
+    : 'Responsable du compte'
+  const self = isOwner(identity)
+  const isMinor = identity.calculatedAge < 18
+  const primaryContract = pickPrimaryContract(contracts)
+
+  return {
+    id: identity.id,
+    firstName: identity.firstName,
+    lastName: identity.lastName,
+    age: identity.calculatedAge,
+    profile: profileLabels[identity.currentProfile],
+    character: self ? 'marie' : identity.calculatedAge < 18 ? 'lea' : undefined,
+    roles: {
+      porteurLabel: identity.firstName,
+      payeur: self
+        ? { name: `${identity.firstName} ${identity.lastName}`, isSelf: true }
+        : { name: ownerName, isSelf: true },
+      responsableLegal: isMinor
+        ? { name: ownerName, isSelf: !self }
+        : { name: `${identity.firstName} ${identity.lastName}`, isSelf: self },
+    },
+    ageBascule: ageBasculeMessage(identity.currentProfile, identity.calculatedAge),
+    titre: primaryContract ? mapContractToPersonTitre(primaryContract) : null,
+  }
+}
+
 export function mockSubscriptionBeneficiaries(): SubscriptionBeneficiaryView[] {
   return mockHouseholdMembers().map((member) => {
     const birthDate =
@@ -240,7 +421,7 @@ export function mockSubscriptionBeneficiaries(): SubscriptionBeneficiaryView[] {
         ? MOCK_SUBSCRIPTION.beneficiaryForm.birthDate
         : '1991-03-15'
     const currentProfile: Profile =
-      member.age < 12 ? 'junior' : member.age < 18 ? 'scolaire' : 'adulte'
+      member.age >= 18 ? 'adulte' : member.age >= 12 ? 'scolaire' : 'junior'
 
     return {
       id: member.id,

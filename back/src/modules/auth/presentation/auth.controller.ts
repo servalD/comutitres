@@ -31,8 +31,20 @@ import { FranceConnectLoginUseCase } from '../application/use-cases/franceconnec
 import { FranceConnectCallbackUseCase } from '../application/use-cases/franceconnect-callback.use-case';
 import { RegisterRequest } from '../application/dto/register.request';
 import { LoginRequest } from '../application/dto/login.request';
+import {
+  CheckIdentityMatchRequest,
+  CheckIdentityMatchResponse,
+} from '../application/dto/check-identity-match.request';
+import {
+  RequestRecoveryRequest,
+  RequestRecoveryResponse,
+} from '../application/dto/request-recovery.request';
+import { CompleteRecoveryRequest } from '../application/dto/complete-recovery.request';
 import { RegisterUseCase } from '../application/use-cases/register.use-case';
 import { LoginWithCredentialsUseCase } from '../application/use-cases/login-with-credentials.use-case';
+import { CheckIdentityMatchUseCase } from '../application/use-cases/check-identity-match.use-case';
+import { RequestRecoveryUseCase } from '../application/use-cases/request-recovery.use-case';
+import { CompleteRecoveryUseCase } from '../application/use-cases/complete-recovery.use-case';
 import { buildFranceConnectErrorRedirectUrl } from './franceconnect-error-redirect';
 
 class TokenResponse {
@@ -48,6 +60,9 @@ export class AuthController {
     private readonly franceConnectCallback: FranceConnectCallbackUseCase,
     private readonly registerUseCase: RegisterUseCase,
     private readonly loginWithCredentials: LoginWithCredentialsUseCase,
+    private readonly checkIdentityMatchUseCase: CheckIdentityMatchUseCase,
+    private readonly requestRecoveryUseCase: RequestRecoveryUseCase,
+    private readonly completeRecoveryUseCase: CompleteRecoveryUseCase,
   ) {}
 
   /** Returns the current authenticated user (works for both providers). */
@@ -78,6 +93,41 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'Identifiants incorrects' })
   async login(@Body() dto: LoginRequest): Promise<TokenResponse> {
     return this.loginWithCredentials.execute(dto);
+  }
+
+  @Public()
+  @Post('check-identity-match')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Vérifier si un profil mobilité existant peut être récupéré',
+  })
+  @ApiOkResponse({ type: CheckIdentityMatchResponse })
+  async checkIdentityMatch(
+    @Body() dto: CheckIdentityMatchRequest,
+  ): Promise<CheckIdentityMatchResponse> {
+    return this.checkIdentityMatchUseCase.execute(dto);
+  }
+
+  @Public()
+  @Post('request-recovery')
+  @ApiOperation({ summary: 'Demander la récupération d’un profil mobilité' })
+  @ApiCreatedResponse({ type: RequestRecoveryResponse })
+  async requestRecovery(
+    @Body() dto: RequestRecoveryRequest,
+  ): Promise<RequestRecoveryResponse> {
+    return this.requestRecoveryUseCase.execute(dto);
+  }
+
+  @Public()
+  @Post('complete-recovery')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Finaliser la récupération avec le code reçu' })
+  @ApiOkResponse({ type: TokenResponse })
+  @ApiUnauthorizedResponse({ description: 'Code invalide ou expiré' })
+  async completeRecovery(
+    @Body() dto: CompleteRecoveryRequest,
+  ): Promise<TokenResponse> {
+    return this.completeRecoveryUseCase.execute(dto);
   }
 
   /** Step 1: redirect the user to FranceConnect to authenticate. */

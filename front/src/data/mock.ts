@@ -19,20 +19,20 @@ export const MOCK_HOUSEHOLD = [
   },
   {
     id: '2',
-    firstName: 'Léa',
+    firstName: 'Jules',
     lastName: 'Dupont',
-    age: 8,
-    role: 'Junior' as const,
-    status: 'Dossier en cours',
+    age: 17,
+    role: 'Scolaire' as const,
+    status: 'Imagine R Scolaire actif',
     isSelf: false,
     character: 'lea' as CharacterId,
   },
 ]
 
 export const MOCK_DOSSIER = {
-  product: 'Imagine R Junior',
-  beneficiaryFirstName: 'Léa',
-  beneficiaryFullName: 'Léa Dupont',
+  product: 'Imagine R Scolaire',
+  beneficiaryFirstName: 'Jules',
+  beneficiaryFullName: 'Jules Dupont',
   beneficiaryCharacter: 'lea' as const,
   currentStep: 2,
   totalSteps: 5,
@@ -46,8 +46,8 @@ export const MOCK_DOSSIER = {
 }
 
 export const MOCK_DOSSIER_DETAIL = {
-  product: 'Imagine R Junior',
-  beneficiaryFullName: 'Léa Dupont',
+  product: 'Imagine R Scolaire',
+  beneficiaryFullName: 'Jules Dupont',
   beneficiaryCharacter: 'lea' as const,
   currentStep: 2,
   totalSteps: 5,
@@ -144,14 +144,14 @@ export const MOCK_SUBSCRIPTION = {
     { id: 'other' as const, label: 'Une autre personne' },
   ],
   beneficiaryForm: {
-    firstName: 'Léa',
+    firstName: 'Jules',
     lastName: 'Dupont',
-    birthDate: '2018-03-15',
+    birthDate: '2009-06-12',
     email: 'marie.dupont@email.fr',
   },
   payment: {
-    amount: '384,00 €',
-    label: 'Imagine R Junior — année scolaire',
+    amount: '351,00 €',
+    label: 'Imagine R Scolaire — année scolaire',
   },
 }
 
@@ -176,25 +176,52 @@ export const MOCK_USAGE_OPTIONS = [
   },
 ]
 
+export { MOCK_PERSON_JULES } from './person-detail-mock'
+
+/** @deprecated Utiliser MOCK_PERSON_JULES — conservé pour compatibilité */
 export const MOCK_PERSON_LEA = {
   id: '2',
-  firstName: 'Léa',
+  firstName: 'Jules',
   lastName: 'Dupont',
-  birthDate: '2018-03-15',
-  age: 8,
-  profile: 'Junior',
+  birthDate: '2009-06-12',
+  age: 17,
+  profile: 'Scolaire',
   character: 'lea' as CharacterId,
   roles: {
-    porteur: { name: 'Léa', label: 'Léa' },
+    porteur: { name: 'Jules', label: 'Jules' },
+    payeur: { name: 'Marie Dupont', label: 'Marie Dupont', isSelf: false },
+    responsableLegal: { name: 'Marie Dupont', isSelf: false },
+  },
+  ageBascule: 'Compte Connect récupérable — passation disponible',
+  titre: {
+    label: 'Imagine R Scolaire',
+    validity: 'Valable en Île-de-France',
+    status: 'Imagine R Scolaire actif',
+    statusType: 'active' as const,
+    productType: 'imagine_r_scolaire' as const,
+  },
+}
+
+export const MOCK_PERSON_MARIE = {
+  id: '1',
+  firstName: 'Marie',
+  lastName: 'Dupont',
+  birthDate: '1991-03-15',
+  age: 34,
+  profile: 'Adulte',
+  character: 'marie' as CharacterId,
+  roles: {
+    porteur: { name: 'Marie', label: 'Marie' },
     payeur: { name: 'Marie Dupont', label: 'Marie Dupont', isSelf: true },
     responsableLegal: { name: 'Marie Dupont', isSelf: true },
   },
-  ageBascule: 'Bascule Scolaire prévue à 11 ans',
+  ageBascule: null as string | null,
   titre: {
-    label: 'Imagine R Junior',
+    label: 'Navigo Annuel',
     validity: 'Valable en Île-de-France',
-    status: 'Dossier en cours',
-    statusType: 'pending' as const,
+    status: 'Navigo Annuel actif',
+    statusType: 'active' as const,
+    productType: 'navigo_annuel' as const,
   },
 }
 

@@ -10,6 +10,7 @@ import { MobilityIdentityOrmEntity } from '../../modules/mobility/infrastructure
 import { RelationshipOrmEntity } from '../../modules/mobility/infrastructure/relationship.orm-entity';
 import { SupportOrmEntity } from '../../modules/mobility/infrastructure/support.orm-entity';
 import { TimelineEventOrmEntity } from '../../modules/mobility/infrastructure/timeline-event.orm-entity';
+import { RecoveryRequestOrmEntity } from '../../modules/auth/infrastructure/recovery-request.orm-entity';
 import { UserOrmEntity } from '../../modules/users/infrastructure/user.orm-entity';
 
 /** Read an env var, falling back to the file referenced by `<NAME>_FILE` (Docker secrets). */
@@ -51,6 +52,7 @@ export const dataSourceOptions: DataSourceOptions = {
     SubscriptionContractOrmEntity,
     CgvuAcceptanceOrmEntity,
     JustificatifOrmEntity,
+    RecoveryRequestOrmEntity,
   ],
   migrations: [__dirname + '/migrations/*.{ts,js}'],
   synchronize: false,

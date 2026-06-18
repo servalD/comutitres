@@ -95,6 +95,10 @@ export function MonEspacePage() {
     error,
   } = useHouseholdData()
 
+  const recoveryAlerts = members.filter(
+    (m) => !m.isSelf && m.identityStatus === 'pending_recovery',
+  )
+
   const {
     product,
     beneficiaryFirstName,
@@ -128,6 +132,28 @@ export function MonEspacePage() {
             </Button>
           </Link>
         </header>
+
+        {recoveryAlerts.length > 0 && (
+          <section className={styles.recoveryAlerts} aria-label="Passation de compte">
+            {recoveryAlerts.map((member) => (
+              <Card key={member.id} className={styles.recoveryCard}>
+                <div className={styles.recoveryCardContent}>
+                  <p className={styles.recoveryCardTitle}>
+                    {member.firstName} a initié une récupération de compte
+                  </p>
+                  <p className={styles.recoveryCardText}>
+                    Votre enfant demande à gérer son propre espace client. La
+                    récupération est en cours de validation par code e-mail.
+                  </p>
+                  <Link to={`/foyer/${member.id}`} className={styles.recoveryCardLink}>
+                    Voir la fiche de {member.firstName}
+                    <ChevronRight />
+                  </Link>
+                </div>
+              </Card>
+            ))}
+          </section>
+        )}
 
         <div className={styles.grid}>
           <section className={styles.primary} aria-label="Dossier en cours">
