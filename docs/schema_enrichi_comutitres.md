@@ -82,6 +82,7 @@ Le schéma cible repose sur 7 principes structurants :
 | `faq_idfm_questions_reponses.md` | Formulations pédagogiques et aide contextuelle pour les situations fréquentes : connexion, perte/vol, oubli, chargement, impayés, remboursements, téléphone. |
 | `perimetre_fonctionnel_hackathon_comutitres.md` | Périmètre MVP : orientation, souscription, justificatifs, TST, SAV, paiement, back-office, API, IA, RGPD, mobile-first. |
 | `Objectif Principal & Vision.txt` | Vision produit : sortir du papier numérisé, personnalisation, accessibilité, anti-fraude, hybridation IA/humain, saisonnalité, B2B employeur. |
+| `smart_ticket_registry.md` | Registre décentralisé de validité droit/support : engagements pseudonymes, statuts on-chain/off-chain, scénario de remplacement SAV. |
 
 ---
 
@@ -1119,6 +1120,89 @@ api_mocks:
 
 ---
 
+## 20 bis. Registre décentralisé et preuve de validité (SmartTicketRegistry)
+
+Pour sécuriser le multi-support tout en protégeant les données personnelles, la plateforme s'appuie sur le smart contract `SmartTicketRegistry` (situé dans `chain/`). Ce registre décentralisé sert d'ancrage de confiance pour prouver la validité d'un droit et l'autorisation d'un support sans exposer d'identité civile.
+
+### 20 bis.1 Frontière On-Chain / Off-Chain
+
+Le contrat intelligent ne stocke que le strict nécessaire sous forme pseudonymisée (*commitments*).
+
+| Donnée / Processus | Localisation | Rôle / Justification |
+| :--- | :--- | :--- |
+| **Identités civiles, photos, justificatifs** | **Off-Chain** (SI Comutitres) | Protection de la vie privée (RGPD), conformité CNIL. |
+| **Détail des impayés, litiges, SAV** | **Off-Chain** (SI Comutitres) | Logique métier interne complexe et arbitrages humains. |
+| **`rightId`** (ID de droit pseudonymisé) | **On-Chain** (Registre) | Référence unique publique du droit de transport. |
+| **`holderCommitment`** (Engagement porteur) | **On-Chain** (Registre) | Empreinte cryptographique liant le droit au porteur (non dérivée de données civiles directes). |
+| **`supportCommitment`** (Engagement support) | **On-Chain** (Registre) | Empreinte cryptographique liant le droit à un support (carte, téléphone, montre). |
+
+### 20 bis.2 Modèle de Données On-Chain
+
+Le registre s'appuie sur deux mappings principaux et des enums de statut :
+
+```solidity
+enum RightStatus { ACTIVE, SUSPENDED, EXPIRED, REVOKED }
+enum SupportStatus { UNKNOWN, AUTHORIZED, REVOKED }
+
+struct RightRecord {
+    bytes32 rightId;
+    bytes32 holderCommitment;
+    RightStatus status;
+    uint64 validUntil;
+    uint64 updatedAt;
+    bool exists;
+}
+
+struct SupportRecord {
+    SupportStatus status;
+    uint64 updatedAt;
+}
+```
+
+- **Règle de non-réutilisation des supports :** Un support déjà enregistré (y compris révoqué) ne peut pas être ré-autorisé. Cela garantit la traçabilité des oppositions et évite le contournement des frais ou de la logique de remplacement.
+
+### 20 bis.3 Fonctions clés exposées par le Registre
+
+Les fonctions de mise à jour sont réservées à l'adaptateur du SI ayant le rôle `REGISTRAR_ROLE`.
+
+*   `registerRight(rightId, holderCommitment, validUntil)` : Enregistre un nouveau droit actif.
+*   `updateRightStatus(rightId, newStatus)` : Suspend ou révoque un droit.
+*   `authorizeSupport(rightId, supportCommitment)` : Autorise un premier support pour un droit.
+*   `revokeSupport(rightId, supportCommitment)` : Met en opposition un support.
+*   `replaceSupport(rightId, oldSupportCommitment, newSupportCommitment)` : Révoque l'ancien support (ex: carte perdue) et autorise le nouveau (ex: téléphone) de manière atomique en une seule transaction.
+*   `isValidForSupport(rightId, supportCommitment)` : Utilisable par les valideurs du réseau pour vérifier si le droit est actif, non expiré et autorisé pour le support présenté.
+
+### 20 bis.4 Scénario de Démonstration Cible (Hackathon)
+
+```mermaid
+sequenceDiagram
+    participant BO as Back-Office (Registrar)
+    participant BC as Blockchain (SmartTicketRegistry)
+    participant V as Valideur / Portique
+
+    Note over BO, BC: 1. Initialisation
+    BO->>BC: registerRight(rightId, holderCommitment, validUntil)
+    BO->>BC: authorizeSupport(rightId, supportPhysiqueCommitment)
+
+    Note over V, BC: 2. Validation physique ok
+    V->>BC: isValidForSupport(rightId, supportPhysiqueCommitment)
+    BC-->>V: returns true
+
+    Note over BO, BC: 3. Remplacement SAV (Passage sur Téléphone)
+    BO->>BC: replaceSupport(rightId, supportPhysiqueCommitment, supportPhoneCommitment)
+    Note over BC: supportPhysique -> REVOKED<br/>supportPhone -> AUTHORIZED
+
+    Note over V, BC: 4. Tentative de fraude (ancien pass physique)
+    V->>BC: isValidForSupport(rightId, supportPhysiqueCommitment)
+    BC-->>V: returns false (REVOKED)
+
+    Note over V, BC: 5. Validation sur téléphone ok
+    V->>BC: isValidForSupport(rightId, supportPhoneCommitment)
+    BC-->>V: returns true
+```
+
+---
+
 ## 21. IA d'assistance : utilisateur et back-office
 
 ### 21.1 Usages côté utilisateur
@@ -1460,6 +1544,7 @@ COMPTE IDFM CONNECT
 │   ├── entreprise / SIRENE
 │   ├── paiement
 │   ├── support billettique
+│   ├── registre décentralisé (SmartTicketRegistry)
 │   └── contrat / recouvrement
 │
 ├── BACK-OFFICE

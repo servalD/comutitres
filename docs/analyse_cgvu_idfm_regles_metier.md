@@ -37,7 +37,7 @@ Objectif de ce livrable : transformer les CGVU en règles concrètes pour le pro
 
 ## 3. Concepts métier utilisés dans ce document
 
-Les définitions détaillées des notions **porteur**, **payeur**, **responsable légal**, **compte Connect**, **contrat**, **support**, **titre**, **droit**, **justificatif**, **incomplétude**, **SAV**, **paiement** et **recouvrement** sont centralisées dans le document `notions_metier_structurantes_comutitres_nettoye.md`.
+Les définitions détaillées des notions **porteur**, **payeur**, **responsable légal**, **compte Connect**, **contrat**, **support**, **titre**, **droit**, **justificatif**, **incomplétude**, **SAV**, **paiement** et **recouvrement** sont centralisées dans le document `notions_metier_structurantes_comutitres.md`.
 
 Dans cette analyse CGVU, ces notions sont seulement réutilisées pour traduire les règles juridiques en impacts produit, UX, comptables et back-office.
 

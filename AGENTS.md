@@ -1,5 +1,5 @@
 # AGENTS.md — Guide de référence pour assistants et agents automatisés
-*Last updated: 2026-06-17*
+*Last updated: 2026-06-18*
 
 Ce fichier sert de point d'entrée pour le contexte du projet, les commandes, la charte graphique et les consignes de développement pour le **Hackathon Comutitres & Île-de-France Mobilités (IDFM)** (15 au 19 Juin 2026).
 
@@ -37,6 +37,7 @@ Pour éviter toute redondance et pollution de contexte, les règles métier dét
 6. **Périmètre fonctionnel & Backlog MVP** : Consulter [perimetre_fonctionnel_hackathon_comutitres.md](docs/perimetre_fonctionnel_hackathon_comutitres.md) (Découpage en priorités MVP 1, 2 et 3, scénarios de démonstration cibles, attendus de la refonte).
 7. **Schéma métier global & Modèle conceptuel** : Consulter [schema_enrichi_comutitres.md](docs/schema_enrichi_comutitres.md) (Diagramme ER de relation Porteur/Payeur/Contrat/Droit, architecture macro et états back-office consolidés).
 8. **Développement Web Offline-First** : Consulter [offline-first-web.md](docs/offline-first-web.md) (Principes du Manifeste Offline-First, Service Workers, stratégies de cache Cache-First/Network-First/Stale-While-Revalidate, IndexedDB et gestion des conflits).
+9. **SmartTicketRegistry & preuve droit/support** : Consulter [smart_ticket_registry.md](docs/smart_ticket_registry.md) (Registre Foundry minimal, `rightId`, `holderCommitment`, `supportCommitment`, statuts droit/support, limites on-chain/off-chain et scénario de démonstration).
 
 ---
 
@@ -71,6 +72,11 @@ Commandes courantes
 - Vérification Lint : `pnpm lint`
 - Visualiser le build : `pnpm preview`
 
+### Blockchain (`chain/` - Foundry Solidity)
+- Installation dépendances : `forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts`
+- Tests : `forge test`
+- Déploiement script : `forge script script/Deploy.s.sol --rpc-url <RPC_URL> --broadcast`
+
 ---
 
 Règles pour les Agents (Agent Rules)
@@ -97,7 +103,7 @@ Règles pour les Agents (Agent Rules)
 6. **Context Minimalism (Minimalisme du contexte)** :
    - Gardez votre contexte de jetons propre. N'ouvrez pas et ne lisez pas de fichiers inutiles pour la tâche en cours.
 7. **Feedback Loops & Verification (Boucles de validation)** :
-   - Lancez systématiquement les lints, builds et tests appropriés dans les dossiers `front/` ou `back/` avant d'affirmer qu'une modification est fonctionnelle.
+   - Lancez systématiquement les lints, builds et tests appropriés dans les dossiers `front/`, `back/` ou `chain/` avant d'affirmer qu'une modification est fonctionnelle.
 
 Conventions
 -----------
