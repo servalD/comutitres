@@ -1,20 +1,40 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Login from './routes/Login';
-import Register from './routes/Register';
-import AuthCallback from './routes/AuthCallback';
-import Dashboard from './routes/Dashboard';
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { AppShell } from './components/layout/AppShell'
+import Login from './routes/Login'
+import Register from './routes/Register'
+import AuthCallback from './routes/AuthCallback'
+import { AddIdentityPage } from './pages/mobility/AddIdentityPage'
+import { IdentityDetailPage } from './pages/mobility/IdentityDetailPage'
+import { MobilityHubPage } from './pages/mobility/MobilityHubPage'
+import { SubscribePage } from './pages/mobility/SubscribePage'
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { token, isLoading } = useAuth();
-  if (isLoading) return null;
-  return token ? <>{children}</> : <Navigate to="/login" replace />;
+function ProtectedRoute() {
+  const { token, isLoading } = useAuth()
+  const location = useLocation()
+
+  if (isLoading) return null
+  if (!token) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  }
+
+  return <Outlet />
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { token, isLoading } = useAuth();
-  if (isLoading) return null;
-  return !token ? <>{children}</> : <Navigate to="/" replace />;
+  const { token, isLoading } = useAuth()
+
+  if (isLoading) return null
+  if (token) {
+    return <Navigate to="/mobility" replace />
+  }
+
+  return <>{children}</>
+}
+
+function IdentityDetailRoute() {
+  const { id } = useParams()
+  return <IdentityDetailPage key={id} />
 }
 
 export default function App() {
@@ -22,6 +42,8 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          <Route path="/auth/callback" element={<AuthCallback />} />
+
           <Route
             path="/login"
             element={
@@ -38,18 +60,20 @@ export default function App() {
               </PublicRoute>
             }
           />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
+
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppShell />}>
+              <Route path="/" element={<Navigate to="/mobility" replace />} />
+              <Route path="/mobility" element={<MobilityHubPage />} />
+              <Route path="/mobility/new" element={<AddIdentityPage />} />
+              <Route path="/mobility/:id/subscribe" element={<SubscribePage />} />
+              <Route path="/mobility/:id" element={<IdentityDetailRoute />} />
+            </Route>
+          </Route>
+
+          <Route path="*" element={<Navigate to="/mobility" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
-  );
+  )
 }
