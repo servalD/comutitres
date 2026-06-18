@@ -27,6 +27,7 @@ export const MOCK_HOUSEHOLD = [
 export const MOCK_DOSSIER = {
   product: 'Imagine R Junior',
   beneficiaryFirstName: 'Léa',
+  beneficiaryFullName: 'Léa Dupont',
   currentStep: 2,
   totalSteps: 5,
   steps: [
@@ -36,4 +37,39 @@ export const MOCK_DOSSIER = {
     { id: 4, label: 'Paiement' },
     { id: 5, label: 'Validation' },
   ],
+}
+
+export const MOCK_DOSSIER_DETAIL = {
+  product: 'Imagine R Junior',
+  beneficiaryFullName: 'Léa Dupont',
+  currentStep: 2,
+  totalSteps: 5,
+  steps: [
+    { id: 1, label: 'Identité' },
+    { id: 2, label: 'Justificatifs' },
+    { id: 3, label: 'Signature' },
+    { id: 4, label: 'Paiement' },
+    { id: 5, label: 'Validation' },
+  ],
+  justificatifs: [
+    {
+      id: 'id-card',
+      label: "Pièce d'identité",
+      status: 'pending' as const,
+      statusLabel: 'À déposer',
+    },
+    {
+      id: 'school',
+      label: 'Justificatif scolarité',
+      status: 'pending' as const,
+      statusLabel: 'À déposer',
+    },
+    {
+      id: 'photo',
+      label: "Photo d'identité",
+      status: 'neutral' as const,
+      statusLabel: 'Requis après validation',
+    },
+  ],
+  processingDelay: 'Délai de traitement : 5 à 10 jours ouvrés',
 }
