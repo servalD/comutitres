@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import styles from './MobileShell.module.css';
 
-type TabId = 'home' | 'titres' | 'alertes' | 'compte';
+type TabId = 'home' | 'titres' | 'alertes' | 'compte' | 'admin';
 
 interface MobileShellProps {
   title: string;
@@ -10,6 +11,7 @@ interface MobileShellProps {
   totalSteps?: number;
   activeTab?: TabId;
   tabHrefs?: Partial<Record<TabId, string>>;
+  showNav?: boolean;
   children: React.ReactNode;
 }
 
@@ -45,6 +47,14 @@ function NavIcon({ name }: { name: TabId }) {
         <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" fill="none" />
       </>
     ),
+    admin: (
+      <>
+        <rect x="3" y="3" width="7" height="7" stroke="currentColor" strokeWidth="2" fill="none" />
+        <rect x="14" y="3" width="7" height="7" stroke="currentColor" strokeWidth="2" fill="none" />
+        <rect x="3" y="14" width="7" height="7" stroke="currentColor" strokeWidth="2" fill="none" />
+        <rect x="14" y="14" width="7" height="7" stroke="currentColor" strokeWidth="2" fill="none" />
+      </>
+    ),
   };
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -53,23 +63,32 @@ function NavIcon({ name }: { name: TabId }) {
   );
 }
 
-const TABS: { id: TabId; label: string; to: string }[] = [
-  { id: 'home', label: 'Accueil', to: '/' },
-  { id: 'titres', label: 'Titres', to: '/justificatifs' },
-  { id: 'alertes', label: 'Alertes', to: '/' },
-  { id: 'compte', label: 'Mon compte', to: '/' },
-];
-
 export default function MobileShell({
   title,
   subtitle,
   step,
   totalSteps = 4,
-  activeTab = 'titres',
+  activeTab = 'home',
   tabHrefs,
+  showNav = true,
   children,
 }: MobileShellProps) {
   const location = useLocation();
+  const { user } = useAuth();
+
+  const tabs = [
+    { id: 'home' as const, label: 'Accueil', to: '/' },
+    { id: 'titres' as const, label: 'Titres', to: '/justificatifs' },
+    { id: 'alertes' as const, label: 'Alertes', to: '/' },
+    ...(user?.roles?.includes('ADMIN')
+      ? [{ id: 'admin' as const, label: 'Admin', to: '/admin/dossiers' }]
+      : []),
+    { id: 'compte' as const, label: 'Compte', to: '/' },
+  ];
+
+  const isActive = (tab: (typeof tabs)[number]) =>
+    tab.id === activeTab ||
+    (tab.id !== 'alertes' && tab.id !== 'compte' && location.pathname === (tabHrefs?.[tab.id] ?? tab.to));
 
   return (
     <div className={styles.shell}>
@@ -88,21 +107,19 @@ export default function MobileShell({
               <h1 className={styles.topbarTitle}>{title}</h1>
               {subtitle && <p className={styles.topbarSub}>{subtitle}</p>}
             </div>
+            {showNav && (
             <nav className={styles.desktopNav} aria-label="Navigation principale">
-              {TABS.map((tab) => (
+              {tabs.map((tab) => (
                 <Link
                   key={tab.id}
                   to={tabHrefs?.[tab.id] ?? tab.to}
-                  className={`${styles.desktopNavLink} ${
-                    (tab.id === activeTab || location.pathname === tab.to)
-                      ? styles.desktopNavLinkActive
-                      : ''
-                  }`}
+                  className={`${styles.desktopNavLink} ${isActive(tab) ? styles.desktopNavLinkActive : ''}`}
                 >
                   {tab.label}
                 </Link>
               ))}
             </nav>
+            )}
           </div>
         </header>
 
@@ -127,8 +144,9 @@ export default function MobileShell({
 
         <main className={styles.main}>{children}</main>
 
+        {showNav && (
         <nav className={styles.navTabs} aria-label="Navigation mobile">
-          {TABS.map((tab) => (
+          {tabs.map((tab) => (
             <Link
               key={tab.id}
               to={tabHrefs?.[tab.id] ?? tab.to}
@@ -139,6 +157,7 @@ export default function MobileShell({
             </Link>
           ))}
         </nav>
+        )}
       </div>
     </div>
   );

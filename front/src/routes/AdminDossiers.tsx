@@ -1,13 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import MobileShell from '../components/MobileShell';
 import {
   justificatifsApi,
   type JustificatifResponse,
-  STATUS_COLORS,
   STATUS_LABELS,
 } from '../api/justificatifs';
 import { useAuth } from '../contexts/AuthContext';
-import styles from './AdminDossiers.module.css';
+import ui from '../styles/comutitres-ui.module.css';
+
+function docPillClass(status: string): string {
+  if (status === 'accepte' || status === 'pre_qualifie') return ui.pillOk;
+  if (status === 'en_cours_de_verification' || status === 'recu') return ui.pillPending;
+  if (status === 'a_revoir' || status === 'refuse') return ui.pillFail;
+  return ui.pillNeutral;
+}
 
 export default function AdminDossiers() {
   const { token, user } = useAuth();
@@ -31,6 +38,7 @@ function AdminDossiersContent({ token }: { token: string }) {
   const [error, setError] = useState<string | null>(null);
 
   const load = () => {
+    setLoading(true);
     justificatifsApi
       .listPending(token)
       .then(setItems)
@@ -44,8 +52,7 @@ function AdminDossiersContent({ token }: { token: string }) {
       .then(setItems)
       .catch(() => {})
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [token]);
 
   async function handleDecision(
     id: string,
@@ -71,67 +78,63 @@ function AdminDossiersContent({ token }: { token: string }) {
   }
 
   return (
-    <div className={styles.page}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Back-office — File justificatifs</h1>
-        <button className={styles.btnRefresh} onClick={load}>Actualiser</button>
-      </header>
-
-      {error && <div className={styles.error}>{error}</div>}
-
-      {loading ? (
-        <div className={styles.hint}>Chargement…</div>
-      ) : items.length === 0 ? (
-        <div className={styles.empty}>
-          <p>Aucun justificatif en attente de validation.</p>
+    <MobileShell
+      title="Back-office"
+      subtitle="File justificatifs"
+      activeTab="admin"
+    >
+      <div className={ui.screenBody}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <button
+            type="button"
+            className={ui.btnSecondary}
+            style={{ width: 'auto', padding: '6px 12px', fontSize: '11px' }}
+            onClick={load}
+          >
+            Actualiser
+          </button>
         </div>
-      ) : (
-        <ul className={styles.list}>
-          {items.map((j) => (
-            <li key={j.id} className={styles.item}>
-              <div className={styles.itemMeta}>
-                <div className={styles.itemRow}>
-                  <span className={styles.metaLabel}>Type</span>
-                  <strong>{j.type}</strong>
-                </div>
-                <div className={styles.itemRow}>
-                  <span className={styles.metaLabel}>Fichier</span>
-                  <span>{j.originalFilename}</span>
-                </div>
-                <div className={styles.itemRow}>
-                  <span className={styles.metaLabel}>Contrat</span>
-                  <span className={styles.mono}>{j.contractId.slice(0, 8)}…</span>
-                </div>
-                <div className={styles.itemRow}>
-                  <span className={styles.metaLabel}>Statut</span>
-                  <span
-                    className={styles.badge}
-                    style={{ background: STATUS_COLORS[j.status] ?? '#1972D2' }}
-                  >
-                    {STATUS_LABELS[j.status] ?? j.status}
+
+        {error && <div className={ui.errorCard}>{error}</div>}
+
+        {loading ? (
+          <p className={ui.hint}>Chargement…</p>
+        ) : items.length === 0 ? (
+          <div className={ui.profileCard}>
+            <p className={ui.hint}>Aucun justificatif en attente de validation.</p>
+          </div>
+        ) : (
+          items.map((j) => (
+            <div key={j.id} className={ui.forfaitItem}>
+              <div className={ui.forfaitTop}>
+                <span className={ui.forfaitName}>{j.type}</span>
+                <span className={`${ui.statusPill} ${docPillClass(j.status)}`}>
+                  {STATUS_LABELS[j.status] ?? j.status}
+                </span>
+              </div>
+              <p className={ui.forfaitDesc}>{j.originalFilename}</p>
+              <div className={ui.summaryRow} style={{ border: 'none', padding: '4px 0' }}>
+                <span className={ui.summaryKey}>Contrat</span>
+                <span className={ui.mono}>{j.contractId.slice(0, 8)}…</span>
+              </div>
+              {j.yousignStatus && (
+                <div className={ui.summaryRow} style={{ border: 'none', padding: '4px 0' }}>
+                  <span className={ui.summaryKey}>YouSign</span>
+                  <span className={ui.summaryVal}>
+                    {j.yousignStatus}
+                    {j.yousignStatusCodes?.length > 0 && ` (${j.yousignStatusCodes.join(', ')})`}
                   </span>
                 </div>
-                {j.yousignStatus && (
-                  <div className={styles.itemRow}>
-                    <span className={styles.metaLabel}>YouSign</span>
-                    <span className={styles.ysStatus}>{j.yousignStatus}</span>
-                    {j.yousignStatusCodes?.length > 0 && (
-                      <span className={styles.ysCode}>
-                        {j.yousignStatusCodes.join(', ')}
-                      </span>
-                    )}
-                  </div>
-                )}
-                <div className={styles.itemRow}>
-                  <span className={styles.metaLabel}>Reçu le</span>
-                  <span>{new Date(j.createdAt).toLocaleDateString('fr-FR')}</span>
-                </div>
+              )}
+              <div className={ui.summaryRow} style={{ border: 'none', padding: '4px 0' }}>
+                <span className={ui.summaryKey}>Reçu le</span>
+                <span className={ui.summaryVal}>{new Date(j.createdAt).toLocaleDateString('fr-FR')}</span>
               </div>
 
               {showMotifFor?.id === j.id ? (
-                <div className={styles.motifBox}>
+                <div style={{ marginTop: 10 }}>
                   <textarea
-                    className={styles.motifInput}
+                    className={ui.textarea}
                     placeholder={
                       showMotifFor.action === 'refuse'
                         ? 'Motif du refus (obligatoire)…'
@@ -141,20 +144,15 @@ function AdminDossiersContent({ token }: { token: string }) {
                     onChange={(e) => setMotif(e.target.value)}
                     rows={3}
                   />
-                  <div className={styles.motifActions}>
+                  <div className={ui.actionRow}>
                     <button
-                      className={
-                        showMotifFor.action === 'refuse'
-                          ? styles.btnRefuse
-                          : styles.btnValidate
-                      }
+                      type="button"
+                      className={showMotifFor.action === 'refuse' ? ui.btnRefuse : ui.btnValidate}
                       disabled={
                         !!actionId ||
                         (showMotifFor.action === 'refuse' && !motif.trim())
                       }
-                      onClick={() =>
-                        handleDecision(j.id, showMotifFor.action, motif)
-                      }
+                      onClick={() => handleDecision(j.id, showMotifFor.action, motif)}
                     >
                       {actionId === j.id
                         ? 'En cours…'
@@ -163,7 +161,8 @@ function AdminDossiersContent({ token }: { token: string }) {
                           : 'Confirmer la validation'}
                     </button>
                     <button
-                      className={styles.btnCancel}
+                      type="button"
+                      className={ui.btnCancel}
                       onClick={() => {
                         setShowMotifFor(null);
                         setMotif('');
@@ -174,31 +173,29 @@ function AdminDossiersContent({ token }: { token: string }) {
                   </div>
                 </div>
               ) : (
-                <div className={styles.actions}>
+                <div className={ui.actionRow}>
                   <button
-                    className={styles.btnValidate}
+                    type="button"
+                    className={ui.btnValidate}
                     disabled={!!actionId}
-                    onClick={() =>
-                      setShowMotifFor({ id: j.id, action: 'validate' })
-                    }
+                    onClick={() => setShowMotifFor({ id: j.id, action: 'validate' })}
                   >
                     Valider
                   </button>
                   <button
-                    className={styles.btnRefuse}
+                    type="button"
+                    className={ui.btnRefuse}
                     disabled={!!actionId}
-                    onClick={() =>
-                      setShowMotifFor({ id: j.id, action: 'refuse' })
-                    }
+                    onClick={() => setShowMotifFor({ id: j.id, action: 'refuse' })}
                   >
                     Refuser
                   </button>
                 </div>
               )}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+            </div>
+          ))
+        )}
+      </div>
+    </MobileShell>
   );
 }

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import MobileShell from '../components/MobileShell';
 import { contractsApi, type ContractResponse } from '../api/contracts';
-import { justificatifsApi, type JustificatifResponse, STATUS_LABELS, STATUS_COLORS } from '../api/justificatifs';
+import { justificatifsApi, type JustificatifResponse, STATUS_LABELS } from '../api/justificatifs';
 import { useAuth } from '../contexts/AuthContext';
-import styles from './ContratSignature.module.css';
+import ui from '../styles/comutitres-ui.module.css';
 
 const STATUS_LABELS_CONTRACT: Record<string, string> = {
   brouillon: 'Brouillon',
@@ -15,6 +16,20 @@ const STATUS_LABELS_CONTRACT: Record<string, string> = {
   suspendu: 'Suspendu',
   resilie: 'Résilié',
 };
+
+function statusPillClass(status: string): string {
+  if (status === 'actif') return ui.pillOk;
+  if (status.startsWith('en_attente') || status === 'signature_en_cours') return ui.pillPending;
+  if (status === 'suspendu' || status === 'resilie') return ui.pillFail;
+  return ui.pillNeutral;
+}
+
+function docPillClass(status: string): string {
+  if (status === 'accepte' || status === 'pre_qualifie') return ui.pillOk;
+  if (status === 'en_cours_de_verification' || status === 'recu') return ui.pillPending;
+  if (status === 'a_revoir' || status === 'refuse') return ui.pillFail;
+  return ui.pillNeutral;
+}
 
 export default function ContratSignature() {
   const { id } = useParams<{ id: string }>();
@@ -60,19 +75,22 @@ export default function ContratSignature() {
 
   if (loading) {
     return (
-      <div className={styles.page}>
-        <div className={styles.loading}>Chargement du contrat…</div>
-      </div>
+      <MobileShell title="Dossier" subtitle="Chargement…" activeTab="titres">
+        <div className={ui.screenBody} style={{ textAlign: 'center', paddingTop: 32 }}>
+          <span className={ui.spinnerDark} style={{ width: 32, height: 32, margin: '0 auto', display: 'block' }} />
+        </div>
+      </MobileShell>
     );
   }
 
   if (!contract) {
     return (
-      <div className={styles.page}>
-        <div className={styles.empty}>
-          Contrat introuvable. <Link to="/">← Retour</Link>
+      <MobileShell title="Dossier" subtitle="Introuvable" activeTab="titres">
+        <div className={ui.screenBody}>
+          <p className={ui.hint}>Contrat introuvable.</p>
+          <Link to="/" className={ui.humanLink}>← Retour à l'accueil</Link>
         </div>
-      </div>
+      </MobileShell>
     );
   }
 
@@ -82,100 +100,89 @@ export default function ContratSignature() {
     contract.status === 'en_attente_de_justificatif';
 
   return (
-    <div className={styles.page}>
-      <header className={styles.header}>
-        <Link to="/" className={styles.back}>← Tableau de bord</Link>
-        <h1 className={styles.title}>Dossier de souscription</h1>
-        <span
-          className={styles.statusBadge}
-          style={{ background: isActive ? '#007D44' : '#1972D2' }}
-        >
-          {STATUS_LABELS_CONTRACT[contract.status] ?? contract.status}
-        </span>
-      </header>
-
-      {/* Contract details */}
-      <section className={styles.card}>
-        <h2 className={styles.cardTitle}>Informations contrat</h2>
-        <div className={styles.grid}>
-          <div className={styles.row}><span>Produit</span><strong>{contract.productCode}</strong></div>
-          <div className={styles.row}><span>Référence</span><strong>{contract.id.slice(0, 8)}…</strong></div>
-          <div className={styles.row}><span>Email porteur</span><strong>{contract.holderEmail}</strong></div>
-          {contract.payerEmail && (
-            <div className={styles.row}><span>Email payeur</span><strong>{contract.payerEmail}</strong></div>
-          )}
-          <div className={styles.row}><span>Version CGVU</span><strong>{contract.cgvuVersion}</strong></div>
+    <MobileShell
+      title="Dossier de souscription"
+      subtitle={`Réf. ${contract.id.slice(0, 8)}…`}
+      activeTab="titres"
+      tabHrefs={{ titres: `/justificatifs?contractId=${contract.id}` }}
+    >
+      <div className={ui.screenBody}>
+        <div className={ui.forfaitTop} style={{ marginBottom: 12 }}>
+          <span className={ui.forfaitName}>{contract.productCode}</span>
+          <span className={`${ui.statusPill} ${statusPillClass(contract.status)}`}>
+            {STATUS_LABELS_CONTRACT[contract.status] ?? contract.status}
+          </span>
         </div>
-      </section>
 
-      {/* Justificatifs summary */}
-      <section className={styles.card}>
-        <div className={styles.cardHeader}>
-          <h2 className={styles.cardTitle}>Justificatifs</h2>
+        <p className={ui.sectionLabel}>Informations contrat</p>
+        <div className={ui.summaryCard}>
+          <div className={ui.summaryRow}>
+            <span className={ui.summaryKey}>Porteur</span>
+            <span className={ui.summaryVal}>{contract.holderEmail}</span>
+          </div>
+          {contract.payerEmail && (
+            <div className={ui.summaryRow}>
+              <span className={ui.summaryKey}>Payeur</span>
+              <span className={ui.summaryVal}>{contract.payerEmail}</span>
+            </div>
+          )}
+          <div className={ui.summaryRow}>
+            <span className={ui.summaryKey}>CGVU</span>
+            <span className={ui.summaryVal}>v{contract.cgvuVersion}</span>
+          </div>
+        </div>
+
+        <div className={ui.cardHeader}>
+          <p className={ui.sectionLabel} style={{ margin: 0 }}>Justificatifs</p>
           <Link
             to={`/justificatifs?contractId=${contract.id}`}
-            className={styles.btnSecondary}
+            className={ui.btnSecondary}
+            style={{ width: 'auto', padding: '6px 10px', fontSize: '10px' }}
           >
-            Gérer les justificatifs
+            Gérer
           </Link>
         </div>
+
         {justificatifs.length === 0 ? (
-          <p className={styles.hint}>Aucun justificatif déposé.</p>
+          <p className={ui.hint}>Aucun justificatif déposé.</p>
         ) : (
-          <ul className={styles.docList}>
+          <ul className={ui.docList}>
             {justificatifs.map((j) => (
-              <li key={j.id} className={styles.docItem}>
-                <span className={styles.docName}>{j.originalFilename}</span>
-                <span
-                  className={styles.docBadge}
-                  style={{ background: STATUS_COLORS[j.status] ?? '#1972D2' }}
-                >
+              <li key={j.id} className={ui.docItem}>
+                <span className={ui.docName}>{j.originalFilename}</span>
+                <span className={`${ui.statusPill} ${docPillClass(j.status)}`}>
                   {STATUS_LABELS[j.status] ?? j.status}
                 </span>
               </li>
             ))}
           </ul>
         )}
-      </section>
 
-      {/* CGVU section */}
-      <section className={styles.card}>
-        <h2 className={styles.cardTitle}>Conditions Générales de Vente et d'Utilisation</h2>
-        <div className={styles.cgvuBox}>
-          <p className={styles.cgvuText}>
-            En signant ce document, vous reconnaissez avoir pris connaissance et accepté
-            les Conditions Générales de Vente et d'Utilisation du produit{' '}
-            <strong>{contract.productCode}</strong> (version {contract.cgvuVersion}) émises
-            par Île-de-France Mobilités, applicables à votre souscription.
-          </p>
-          <p className={styles.cgvuText}>
-            La signature est réalisée via <strong>YouSign</strong>, prestataire de signature
-            électronique qualifié. Un audit de traçabilité est généré et conservé pour chaque
-            signature.
+        <p className={ui.sectionLabel} style={{ marginTop: 16 }}>CGVU</p>
+        <div className={ui.profileCard}>
+          <p className={ui.hint} style={{ lineHeight: 1.6 }}>
+            En signant, vous acceptez les CGVU du produit <strong>{contract.productCode}</strong>{' '}
+            (version {contract.cgvuVersion}). Signature via YouSign avec audit de traçabilité.
           </p>
         </div>
 
         {isActive ? (
-          <div className={styles.successBox}>
-            ✓ CGVU signées et contrat actif
-          </div>
+          <div className={ui.successCard}>✓ CGVU signées — contrat actif</div>
         ) : canSign ? (
           <>
-            {signError && <p className={styles.error}>{signError}</p>}
-            <button
-              className={styles.btnSign}
-              onClick={handleSign}
-              disabled={signing}
-            >
+            {signError && <div className={ui.errorCard}>{signError}</div>}
+            <button type="button" className={ui.btnPrimary} onClick={handleSign} disabled={signing}>
               {signing ? 'Redirection vers YouSign…' : 'Signer les CGVU avec YouSign'}
             </button>
           </>
         ) : (
-          <p className={styles.hint}>
+          <p className={ui.hint}>
             La signature sera disponible une fois tous les justificatifs validés.
           </p>
         )}
-      </section>
-    </div>
+
+        <Link to="/" className={ui.humanLink}>← Retour à l'accueil</Link>
+      </div>
+    </MobileShell>
   );
 }
