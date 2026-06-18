@@ -65,7 +65,7 @@ export default function Login({ zone = 'mobility' }: LoginProps) {
         await afterLogin(accessToken);
         return;
       }
-      window.location.href = `${import.meta.env.VITE_API_URL ?? 'http://localhost:3000'}/auth/franceconnect/login`;
+      window.location.href = `${import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'}/auth/franceconnect/login`;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue.');
       setLoading(false);

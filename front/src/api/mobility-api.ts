@@ -16,7 +16,7 @@ import type {
   Relationship,
 } from '../domain/types/mobility'
 
-const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'
 
 const http = new HttpClient({
   baseUrl,
