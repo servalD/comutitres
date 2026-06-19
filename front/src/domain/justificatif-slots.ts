@@ -87,7 +87,9 @@ function slotCanSelect(upload: JustificatifResponse | null): boolean {
   return (
     upload.status === 'a_revoir' ||
     upload.status === 'refuse' ||
-    upload.status === 'incomplet'
+    upload.status === 'incomplet' ||
+    upload.status === 'recu' ||
+    upload.status === 'en_cours_de_verification'
   )
 }
 

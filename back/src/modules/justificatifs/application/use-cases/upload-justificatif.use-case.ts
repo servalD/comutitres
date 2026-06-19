@@ -5,11 +5,9 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { Env } from '../../../../infrastructure/config/env.validation';
 import {
   YousignClient,
   type YouSignVerificationResult,
@@ -29,7 +27,6 @@ import { JustificatifRepository } from '../../domain/justificatif.repository';
 const LOCKED_JUSTIFICATIF_STATUSES = new Set<JustificatifStatus>([
   JustificatifStatus.PRE_QUALIFIE,
   JustificatifStatus.ACCEPTE,
-  JustificatifStatus.EN_COURS_DE_VERIFICATION,
 ]);
 
 const REPLACEABLE_JUSTIFICATIF_STATUSES = new Set<JustificatifStatus>([
@@ -37,6 +34,7 @@ const REPLACEABLE_JUSTIFICATIF_STATUSES = new Set<JustificatifStatus>([
   JustificatifStatus.REFUSE,
   JustificatifStatus.INCOMPLET,
   JustificatifStatus.RECU,
+  JustificatifStatus.EN_COURS_DE_VERIFICATION,
 ]);
 
 @Injectable()
@@ -48,7 +46,6 @@ export class UploadJustificatifUseCase {
     private readonly justificatifRepo: JustificatifRepository,
     private readonly contractRepo: ContractRepository,
     private readonly yousign: YousignClient,
-    private readonly config: ConfigService<Env, true>,
     private readonly aiVerification: JustificatifAiVerificationService,
     private readonly documentGate: ContractDocumentGateService,
   ) {

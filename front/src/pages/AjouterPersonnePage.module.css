@@ -140,3 +140,9 @@
   outline: 3px solid var(--color-idfm-blue);
   outline-offset: 2px;
 }
+
+.error {
+  font-size: 0.875rem;
+  color: var(--color-danger, #dc2626);
+  margin: 0;
+}
