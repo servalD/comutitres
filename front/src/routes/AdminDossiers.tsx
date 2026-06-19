@@ -1,19 +1,16 @@
 import { type FormEvent, useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   justificatifsApi,
-  STATUS_LABELS,
+  docStatusLabel,
   type JustificatifResponse,
 } from '../api/justificatifs';
 import { mobilityApi } from '../api/mobility-api';
 import MobileShell from '../components/MobileShell';
 import { useAuth } from '../contexts/AuthContext';
-import {
-  foundSupportDecisionLabels,
-  foundSupportFinalStatusLabels,
-  foundSupportNotificationLabels,
-  supportStatusLabels,
-} from '../constants/labels';
+import i18n from '../i18n';
+import { labelFor, useLabels } from '../constants/labels';
 import type {
   FoundSupportCase,
   FoundSupportClosure,
@@ -23,11 +20,7 @@ import type {
 } from '../domain/types/mobility';
 import ui from '../styles/comutitres-ui.module.css';
 
-const riskFlagOptions: Array<{ value: FoundSupportRiskFlag; label: string }> = [
-  { value: 'unpaid', label: 'Impaye' },
-  { value: 'fraud', label: 'Fraude' },
-  { value: 'litigation', label: 'Litige' },
-];
+const riskFlagValues: FoundSupportRiskFlag[] = ['unpaid', 'fraud', 'litigation'];
 
 function docPillClass(status: string): string {
   if (status === 'accepte' || status === 'pre_qualifie') return ui.pillOk;
@@ -55,18 +48,20 @@ function foundDecisionPillClass(decision: FoundSupportDecision): string {
   return ui.pillNeutral;
 }
 
+const ta = (key: string): string => i18n.t(key, { ns: 'subscription' });
+
 function compactId(value: string | null): string {
-  if (!value) return 'Non disponible';
+  if (!value) return ta('admin.notAvailable');
   return value.length > 12 ? `${value.slice(0, 8)}...` : value;
 }
 
 function formatDate(value: string | null): string {
-  if (!value) return 'Non applicable';
-  return new Date(value).toLocaleDateString('fr-FR');
+  if (!value) return ta('admin.notApplicable');
+  return new Date(value).toLocaleDateString(i18n.language);
 }
 
 function getErrorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : 'Erreur inattendue';
+  return err instanceof Error ? err.message : ta('admin.unexpectedError');
 }
 
 export default function AdminDossiers() {
@@ -80,6 +75,12 @@ export default function AdminDossiers() {
 }
 
 function AdminDossiersContent({ token }: { token: string }) {
+  const { t } = useTranslation('subscription');
+  const { supportStatusLabels } = useLabels();
+  const riskFlagOptions = riskFlagValues.map((value) => ({
+    value,
+    label: t(`admin.riskFlags.${value}`),
+  }));
   const [items, setItems] = useState<JustificatifResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
@@ -134,7 +135,7 @@ function AdminDossiersContent({ token }: { token: string }) {
     const nextAgencyId = agencyId.trim();
 
     if (!nextSupportId || !nextAgencyId) {
-      setFoundError('Numero support et agence sont obligatoires.');
+      setFoundError(t('admin.supportAgencyRequired'));
       return;
     }
 
@@ -215,30 +216,30 @@ function AdminDossiersContent({ token }: { token: string }) {
 
   return (
     <MobileShell
-      title="Back-office"
-      subtitle="SAV et justificatifs"
+      title={t('admin.title')}
+      subtitle={t('admin.subtitle')}
       activeTab="admin"
     >
       <div className={ui.screenBody}>
         <div className={ui.profileCard}>
-          <p className={ui.sectionLabel}>Objet trouve billettique</p>
+          <p className={ui.sectionLabel}>{t('admin.lostObjectSection')}</p>
           <div className={ui.profileCardTitle}>
-            Declarer un pass retrouve en agence
+            {t('admin.declareFoundTitle')}
           </div>
 
           <form onSubmit={handleDeclareFoundSupport}>
             <div className={ui.fieldRow}>
               <label className={ui.field}>
-                <span className={ui.fieldLabel}>Numero support</span>
+                <span className={ui.fieldLabel}>{t('admin.supportNumber')}</span>
                 <input
                   className={ui.input}
                   value={supportId}
                   onChange={(event) => setSupportId(event.target.value)}
-                  placeholder="UUID ou numero mock"
+                  placeholder={t('admin.supportPlaceholder')}
                 />
               </label>
               <label className={ui.field}>
-                <span className={ui.fieldLabel}>Agence de depot</span>
+                <span className={ui.fieldLabel}>{t('admin.depotAgency')}</span>
                 <input
                   className={ui.input}
                   value={agencyId}
@@ -248,7 +249,7 @@ function AdminDossiersContent({ token }: { token: string }) {
             </div>
 
             <div className={ui.field}>
-              <span className={ui.fieldLabel}>Signaux sensibles</span>
+              <span className={ui.fieldLabel}>{t('admin.riskSignals')}</span>
               <div className={ui.checkPillRow}>
                 {riskFlagOptions.map((option) => (
                   <label key={option.value} className={ui.checkPill}>
@@ -268,7 +269,7 @@ function AdminDossiersContent({ token }: { token: string }) {
               className={ui.btnPrimary}
               disabled={foundLoading}
             >
-              {foundLoading ? 'Analyse en cours...' : 'Declarer le support'}
+              {foundLoading ? t('admin.analyzing') : t('admin.declareSupport')}
             </button>
           </form>
         </div>
@@ -279,39 +280,39 @@ function AdminDossiersContent({ token }: { token: string }) {
           <div className={ui.forfaitItem}>
             <div className={ui.forfaitTop}>
               <span className={ui.forfaitName}>
-                Support {compactId(foundCase.supportId)}
+                {t('admin.supportWithId', { id: compactId(foundCase.supportId) })}
               </span>
               <span
                 className={`${ui.statusPill} ${foundDecisionPillClass(
                   foundCase.decision,
                 )}`}
               >
-                {foundSupportDecisionLabels[foundCase.decision]}
+                {labelFor.foundSupportDecision(foundCase.decision)}
               </span>
             </div>
 
             <div className={ui.summaryRow}>
-              <span className={ui.summaryKey}>Porteur masque</span>
+              <span className={ui.summaryKey}>{t('admin.maskedHolder')}</span>
               <span className={ui.summaryVal}>
-                {foundCase.holderMaskedName ?? 'Non disponible'}
+                {foundCase.holderMaskedName ?? t('admin.notAvailable')}
               </span>
             </div>
             <div className={ui.summaryRow}>
-              <span className={ui.summaryKey}>Statut support</span>
+              <span className={ui.summaryKey}>{t('admin.supportStatusLabel')}</span>
               <span className={ui.summaryVal}>
                 {foundCase.supportStatus
                   ? supportStatusLabels[foundCase.supportStatus]
-                  : 'Inconnu'}
+                  : t('admin.unknown')}
               </span>
             </div>
             <div className={ui.summaryRow}>
-              <span className={ui.summaryKey}>Notification</span>
+              <span className={ui.summaryKey}>{t('admin.notification')}</span>
               <span className={ui.summaryVal}>
-                {foundSupportNotificationLabels[foundCase.notificationStrategy]}
+                {labelFor.foundSupportNotification(foundCase.notificationStrategy)}
               </span>
             </div>
             <div className={ui.summaryRow}>
-              <span className={ui.summaryKey}>Date limite</span>
+              <span className={ui.summaryKey}>{t('admin.deadline')}</span>
               <span className={ui.summaryVal}>
                 {formatDate(foundCase.pickupDeadline)}
               </span>
@@ -337,7 +338,7 @@ function AdminDossiersContent({ token }: { token: string }) {
                       setIdentityCheckPerformed(event.target.checked)
                     }
                   />
-                  Controle identite effectue
+                  {t('admin.identityChecked')}
                 </label>
                 <input
                   className={ui.input}
@@ -345,7 +346,7 @@ function AdminDossiersContent({ token }: { token: string }) {
                   onChange={(event) =>
                     setWithdrawalProofReference(event.target.value)
                   }
-                  placeholder="Reference preuve de retrait"
+                  placeholder={t('admin.withdrawalProofPlaceholder')}
                 />
                 <div className={ui.actionRow}>
                   <button
@@ -359,8 +360,8 @@ function AdminDossiersContent({ token }: { token: string }) {
                     onClick={() => handleCloseFoundCase('withdrawn')}
                   >
                     {foundClosingStatus === 'withdrawn'
-                      ? 'Cloture...'
-                      : 'Retrait controle'}
+                      ? t('admin.closing')
+                      : t('admin.controlledWithdrawal')}
                   </button>
                   <button
                     type="button"
@@ -368,7 +369,7 @@ function AdminDossiersContent({ token }: { token: string }) {
                     disabled={foundClosingStatus !== null}
                     onClick={() => handleCloseFoundCase('not_claimed')}
                   >
-                    Non reclame
+                    {t('admin.notClaimed')}
                   </button>
                   <button
                     type="button"
@@ -376,21 +377,21 @@ function AdminDossiersContent({ token }: { token: string }) {
                     disabled={foundClosingStatus !== null}
                     onClick={() => handleCloseFoundCase('sent_to_backoffice')}
                   >
-                    Back-office
+                    {t('admin.backOffice')}
                   </button>
                 </div>
               </>
             ) : (
-              <p className={ui.hint}>
-                Support non reconnu : aucune donnee personnelle affichee.
-              </p>
+              <p className={ui.hint}>{t('admin.unrecognizedSupport')}</p>
             )}
           </div>
         )}
 
         {foundClosure && (
           <div className={ui.successCard}>
-            Cloture : {foundSupportFinalStatusLabels[foundClosure.finalStatus]}
+            {t('admin.closure', {
+              status: labelFor.foundSupportFinalStatus(foundClosure.finalStatus),
+            })}
           </div>
         )}
 
@@ -403,19 +404,17 @@ function AdminDossiersContent({ token }: { token: string }) {
             style={{ width: 'auto', padding: '6px 12px', fontSize: '11px' }}
             onClick={load}
           >
-            Actualiser
+            {t('admin.refresh')}
           </button>
         </div>
 
         {error && <div className={ui.errorCard}>{error}</div>}
 
         {loading ? (
-          <p className={ui.hint}>Chargement...</p>
+          <p className={ui.hint}>{t('common:loading')}</p>
         ) : items.length === 0 ? (
           <div className={ui.profileCard}>
-            <p className={ui.hint}>
-              Aucun justificatif en attente de validation.
-            </p>
+            <p className={ui.hint}>{t('admin.noPending')}</p>
           </div>
         ) : (
           items.map((j) => (
@@ -423,7 +422,7 @@ function AdminDossiersContent({ token }: { token: string }) {
               <div className={ui.forfaitTop}>
                 <span className={ui.forfaitName}>{j.type}</span>
                 <span className={`${ui.statusPill} ${docPillClass(j.status)}`}>
-                  {STATUS_LABELS[j.status] ?? j.status}
+                  {docStatusLabel(j.status)}
                 </span>
               </div>
               <p className={ui.forfaitDesc}>{j.originalFilename}</p>
@@ -431,7 +430,7 @@ function AdminDossiersContent({ token }: { token: string }) {
                 className={ui.summaryRow}
                 style={{ border: 'none', padding: '4px 0' }}
               >
-                <span className={ui.summaryKey}>Contrat</span>
+                <span className={ui.summaryKey}>{t('admin.contract')}</span>
                 <span className={ui.mono}>{j.contractId.slice(0, 8)}...</span>
               </div>
               {j.yousignStatus && (
@@ -451,9 +450,9 @@ function AdminDossiersContent({ token }: { token: string }) {
                 className={ui.summaryRow}
                 style={{ border: 'none', padding: '4px 0' }}
               >
-                <span className={ui.summaryKey}>Recu le</span>
+                <span className={ui.summaryKey}>{t('admin.receivedOn')}</span>
                 <span className={ui.summaryVal}>
-                  {new Date(j.createdAt).toLocaleDateString('fr-FR')}
+                  {new Date(j.createdAt).toLocaleDateString(i18n.language)}
                 </span>
               </div>
 
@@ -463,8 +462,8 @@ function AdminDossiersContent({ token }: { token: string }) {
                     className={ui.textarea}
                     placeholder={
                       showMotifFor.action === 'refuse'
-                        ? 'Motif du refus (obligatoire)...'
-                        : 'Commentaire (optionnel)...'
+                        ? t('admin.refusalReason')
+                        : t('admin.optionalComment')
                     }
                     value={motif}
                     onChange={(e) => setMotif(e.target.value)}
@@ -487,10 +486,10 @@ function AdminDossiersContent({ token }: { token: string }) {
                       }
                     >
                       {actionId === j.id
-                        ? 'En cours...'
+                        ? t('admin.processing')
                         : showMotifFor.action === 'refuse'
-                          ? 'Confirmer le refus'
-                          : 'Confirmer la validation'}
+                          ? t('admin.confirmRefusal')
+                          : t('admin.confirmValidation')}
                     </button>
                     <button
                       type="button"
@@ -500,7 +499,7 @@ function AdminDossiersContent({ token }: { token: string }) {
                         setMotif('');
                       }}
                     >
-                      Annuler
+                      {t('common:actions.cancel')}
                     </button>
                   </div>
                 </div>
@@ -514,7 +513,7 @@ function AdminDossiersContent({ token }: { token: string }) {
                       setShowMotifFor({ id: j.id, action: 'validate' })
                     }
                   >
-                    Valider
+                    {t('admin.validate')}
                   </button>
                   <button
                     type="button"
@@ -524,7 +523,7 @@ function AdminDossiersContent({ token }: { token: string }) {
                       setShowMotifFor({ id: j.id, action: 'refuse' })
                     }
                   >
-                    Refuser
+                    {t('admin.refuse')}
                   </button>
                 </div>
               )}

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { BottomNav } from './BottomNav'
 import { DesktopNav } from './DesktopNav'
 import { Logo } from './Logo'
@@ -30,6 +31,7 @@ export function AppLayout({
   activeTab = 'accueil',
   showProfile = true,
 }: AppLayoutProps) {
+  const { t } = useTranslation('common')
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
@@ -39,7 +41,7 @@ export function AppLayout({
           <DesktopNav activeTab={activeTab} />
 
           {showProfile && (
-            <button type="button" className={styles.profileBtn} aria-label="Mon profil">
+            <button type="button" className={styles.profileBtn} aria-label={t('myProfile')}>
               <ProfileIcon />
             </button>
           )}

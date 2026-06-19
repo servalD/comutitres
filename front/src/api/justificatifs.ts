@@ -1,4 +1,9 @@
+import i18n from '../i18n';
+
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
+
+const ts = (key: string, options?: Record<string, unknown>): string =>
+  i18n.t(key, { ns: 'subscription', ...options });
 
 export interface JustificatifResponse {
   id: string;
@@ -15,50 +20,50 @@ export interface JustificatifResponse {
   updatedAt: string;
 }
 
-export const JUSTIFICATIF_TYPES = [
-  { value: 'piece_identite', label: "Pièce d'identité" },
-  { value: 'justificatif_domicile', label: 'Justificatif de domicile' },
-  { value: 'certificat_scolarite', label: 'Certificat de scolarité' },
-  { value: 'attestation_bourse', label: 'Attestation de bourse' },
-  { value: 'photo', label: 'Photo' },
-  { value: 'mandat_sepa', label: 'Mandat SEPA' },
-  { value: 'attestation_caf', label: 'Attestation CAF' },
-  { value: 'autre', label: 'Autre document' },
+export const JUSTIFICATIF_TYPE_VALUES = [
+  'piece_identite',
+  'justificatif_domicile',
+  'certificat_scolarite',
+  'attestation_bourse',
+  'photo',
+  'mandat_sepa',
+  'attestation_caf',
+  'autre',
 ] as const;
 
-export const STATUS_LABELS: Record<string, string> = {
-  recu: 'Reçu',
-  en_cours_de_verification: 'Vérification en cours…',
-  pre_qualifie: 'Document conforme',
-  a_revoir: 'Document non conforme',
-  accepte: 'Accepté',
-  refuse: 'Refusé',
-  incomplet: 'Incomplet',
-  expire: 'Expiré',
-};
+export function justificatifTypes(): { value: string; label: string }[] {
+  return JUSTIFICATIF_TYPE_VALUES.map((value) => ({
+    value,
+    label: ts(`docs.types.${value}`),
+  }));
+}
+
+export function docStatusLabel(status: string): string {
+  return ts(`docs.statuses.${status}`, { defaultValue: status });
+}
 
 /** Message client selon le résultat YouSign. */
 export function clientStatusHint(j: JustificatifResponse): string | null {
   if (j.status === 'en_cours_de_verification') {
-    return 'Analyse automatique en cours par YouSign…';
+    return ts('docs.hints.verifying');
   }
   if (j.status === 'pre_qualifie') {
-    return 'Votre document a passé la vérification automatique. Un agent confirmera sous peu.';
+    return ts('docs.hints.preQualified');
   }
   if (j.status === 'a_revoir') {
     if (j.yousignStatusCodes.includes('IDDV_1103')) {
-      return 'Ce fichier ne peut pas être traité comme une pièce d\'identité valide. Déposez une CNI, un passeport ou un titre de séjour lisible.';
+      return ts('docs.hints.idInvalid');
     }
     if (j.yousignStatusCodes.length > 0) {
-      return `Vérification échouée (${j.yousignStatusCodes.join(', ')}). Merci de déposer un nouveau document.`;
+      return ts('docs.hints.verificationFailed', { codes: j.yousignStatusCodes.join(', ') });
     }
-    return 'Le document ne correspond pas aux critères attendus. Merci de déposer un nouveau fichier.';
+    return ts('docs.hints.notMatching');
   }
   if (j.status === 'accepte') {
-    return 'Document validé définitivement.';
+    return ts('docs.hints.accepted');
   }
   if (j.status === 'refuse') {
-    return j.agentMotif ?? 'Document refusé par un agent.';
+    return j.agentMotif ?? ts('docs.hints.refusedDefault');
   }
   return null;
 }
@@ -92,7 +97,7 @@ async function authFetch<T>(
     const raw = (body as { message?: string | string[] }).message;
     const message = Array.isArray(raw)
       ? raw.join(', ')
-      : raw ?? `Erreur ${res.status}`;
+      : raw ?? i18n.t('errors.http', { ns: 'common', status: res.status });
     throw new Error(message);
   }
 

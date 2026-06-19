@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { AppLayout } from '../components/layout/AppLayout'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Avatar } from '../components/ui/Avatar'
@@ -113,6 +114,7 @@ const DOC_ICONS: Record<string, ReactNode> = {
 
 export function MonDossierPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('dossier')
   const {
     product,
     beneficiaryFullName,
@@ -128,9 +130,9 @@ export function MonDossierPage() {
   return (
     <AppLayout activeTab="accueil">
       <div className={styles.page}>
-        <PageHeader title="Mon dossier" backTo="/espace" />
+        <PageHeader title={t('detail.title')} backTo="/espace" />
 
-        <section className={styles.summary} aria-label="Résumé du dossier">
+        <section className={styles.summary} aria-label={t('detail.summaryAria')}>
           <div className={styles.cardVisual} aria-hidden="true">
             <div className={styles.cardChip} />
             <span className={styles.cardBrand}>Imagine R</span>
@@ -154,7 +156,7 @@ export function MonDossierPage() {
         </div>
 
         <div className={styles.content}>
-          <section className={styles.documentsPanel} aria-label="Justificatifs">
+          <section className={styles.documentsPanel} aria-label={t('detail.documents')}>
             <Card className={styles.accordionCard}>
               <button
                 type="button"
@@ -166,16 +168,14 @@ export function MonDossierPage() {
                   <span className={styles.accordionIcon} aria-hidden="true">
                     <DocIcon />
                   </span>
-                  <span className={styles.accordionTitle}>Justificatifs</span>
+                  <span className={styles.accordionTitle}>{t('detail.documents')}</span>
                 </span>
                 <ChevronIcon open={accordionOpen} />
               </button>
 
               {accordionOpen && (
                 <div className={styles.accordionBody}>
-                  <p className={styles.instruction}>
-                    Déposez les documents suivants pour continuer votre demande.
-                  </p>
+                  <p className={styles.instruction}>{t('detail.instruction')}</p>
 
                   <div className={styles.documentList}>
                     {justificatifs.map((doc) => (
@@ -193,12 +193,12 @@ export function MonDossierPage() {
             </Card>
           </section>
 
-          <aside className={styles.actionsPanel} aria-label="Dépôt de documents">
+          <aside className={styles.actionsPanel} aria-label={t('detail.uploadAria')}>
             <UploadZone />
             <InfoBanner>{processingDelay}</InfoBanner>
             <Button fullWidth className={styles.submitBtn} onClick={() => navigate('/dossier/signature')}>
               <UploadCloudIcon />
-              Déposer mes justificatifs
+              {t('detail.submitDocuments')}
             </Button>
           </aside>
         </div>

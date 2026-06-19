@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { AppLayout } from '../components/layout/AppLayout'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Avatar } from '../components/ui/Avatar'
@@ -10,12 +11,7 @@ import styles from './FichePersonnePage.module.css'
 
 type TabId = 'resume' | 'titres' | 'documents' | 'historique'
 
-const TABS: Array<{ id: TabId; label: string }> = [
-  { id: 'resume', label: 'Résumé' },
-  { id: 'titres', label: 'Titres' },
-  { id: 'documents', label: 'Documents' },
-  { id: 'historique', label: 'Historique' },
-]
+const TAB_IDS: TabId[] = ['resume', 'titres', 'documents', 'historique']
 
 function ChevronRight() {
   return (
@@ -79,6 +75,7 @@ function PlusIcon() {
 
 export function FichePersonnePage() {
   const { id } = useParams<{ id: string }>()
+  const { t } = useTranslation('foyer')
   const [activeTab, setActiveTab] = useState<TabId>('resume')
 
   const person = id === '2' ? MOCK_PERSON_LEA : MOCK_PERSON_LEA
@@ -86,7 +83,7 @@ export function FichePersonnePage() {
   return (
     <AppLayout activeTab="foyer">
       <div className={styles.page}>
-        <PageHeader title="Fiche personne" backTo="/foyer" />
+        <PageHeader title={t('fiche.title')} backTo="/foyer" />
 
         <div className={styles.profileHeader}>
           <Avatar
@@ -96,21 +93,21 @@ export function FichePersonnePage() {
           />
           <div className={styles.profileInfo}>
             <h1 className={styles.profileName}>{person.firstName} {person.lastName}</h1>
-            <p className={styles.profileAge}>{person.age} ans</p>
+            <p className={styles.profileAge}>{t('ageYears', { count: person.age })}</p>
           </div>
           <span className={styles.profileBadge}>{person.profile}</span>
         </div>
 
-        <nav className={styles.tabs} aria-label="Onglets fiche personne">
-          {TABS.map((tab) => (
+        <nav className={styles.tabs} aria-label={t('fiche.tabsAria')}>
+          {TAB_IDS.map((tabId) => (
             <button
-              key={tab.id}
+              key={tabId}
               type="button"
-              className={[styles.tab, activeTab === tab.id ? styles.tabActive : ''].filter(Boolean).join(' ')}
-              onClick={() => setActiveTab(tab.id)}
-              aria-current={activeTab === tab.id ? 'page' : undefined}
+              className={[styles.tab, activeTab === tabId ? styles.tabActive : ''].filter(Boolean).join(' ')}
+              onClick={() => setActiveTab(tabId)}
+              aria-current={activeTab === tabId ? 'page' : undefined}
             >
-              {tab.label}
+              {t(`fiche.tabs.${tabId}`)}
             </button>
           ))}
         </nav>
@@ -119,12 +116,12 @@ export function FichePersonnePage() {
           <div className={styles.resumeGrid}>
             <div className={styles.resumeLeft}>
               <Card className={styles.rolesCard}>
-                <h2 className={styles.cardTitle}>Rôles</h2>
+                <h2 className={styles.cardTitle}>{t('fiche.roles')}</h2>
                 <ul className={styles.roleList}>
                   <li className={styles.roleRow}>
                     <span className={styles.roleIcon} aria-hidden="true"><PersonIcon /></span>
                     <div className={styles.roleBody}>
-                      <span className={styles.roleLabel}>Porteur</span>
+                      <span className={styles.roleLabel}>{t('fiche.holder')}</span>
                       <span className={styles.roleValue}>{person.roles.porteur.label}</span>
                     </div>
                     <span className={styles.roleChevron} aria-hidden="true"><ChevronRight /></span>
@@ -132,10 +129,10 @@ export function FichePersonnePage() {
                   <li className={styles.roleRow}>
                     <span className={styles.roleIcon} aria-hidden="true"><CardIcon /></span>
                     <div className={styles.roleBody}>
-                      <span className={styles.roleLabel}>Payeur</span>
+                      <span className={styles.roleLabel}>{t('fiche.payer')}</span>
                       <span className={styles.roleValue}>
                         {person.roles.payeur.name}
-                        {person.roles.payeur.isSelf && <span className={styles.youBadge}>vous</span>}
+                        {person.roles.payeur.isSelf && <span className={styles.youBadge}>{t('fiche.youLower')}</span>}
                       </span>
                     </div>
                     <span className={styles.roleChevron} aria-hidden="true"><ChevronRight /></span>
@@ -143,7 +140,7 @@ export function FichePersonnePage() {
                   <li className={styles.roleRow}>
                     <span className={styles.roleIcon} aria-hidden="true"><ShieldIcon /></span>
                     <div className={styles.roleBody}>
-                      <span className={styles.roleLabel}>Responsable légal</span>
+                      <span className={styles.roleLabel}>{t('fiche.legalGuardian')}</span>
                       <span className={styles.roleValue}>{person.roles.responsableLegal.name}</span>
                     </div>
                     <span className={styles.roleChevron} aria-hidden="true"><ChevronRight /></span>
@@ -180,7 +177,7 @@ export function FichePersonnePage() {
               <Link to="/souscription/nouvelle">
                 <Button fullWidth className={styles.ctaBtn}>
                   <span aria-hidden="true"><PlusIcon /></span>
-                  Souscrire un titre
+                  {t('fiche.subscribe')}
                 </Button>
               </Link>
             </div>
@@ -190,21 +187,21 @@ export function FichePersonnePage() {
         {activeTab === 'titres' && (
           <div className={styles.placeholder}>
             <TicketIcon />
-            <p>Les titres actifs et archives apparaîtront ici.</p>
+            <p>{t('fiche.placeholderTitres')}</p>
           </div>
         )}
 
         {activeTab === 'documents' && (
           <div className={styles.placeholder}>
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" /><polyline points="14 2 14 8 20 8" stroke="currentColor" strokeWidth="2" /></svg>
-            <p>Les documents déposés apparaîtront ici.</p>
+            <p>{t('fiche.placeholderDocuments')}</p>
           </div>
         )}
 
         {activeTab === 'historique' && (
           <div className={styles.placeholder}>
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" /><polyline points="12 6 12 12 16 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-            <p>L'historique des événements apparaîtra ici.</p>
+            <p>{t('fiche.placeholderHistorique')}</p>
           </div>
         )}
       </div>

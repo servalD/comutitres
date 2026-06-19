@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AppLayout } from '../components/layout/AppLayout'
 import { MOCK_HELP_CATEGORIES, MOCK_HELP_PROBLEMS } from '../data/mock'
 import styles from './AidePage.module.css'
@@ -79,6 +80,7 @@ function CategoryIcon({ id }: { id: string }) {
 }
 
 export function AidePage() {
+  const { t } = useTranslation('foyer')
   const [query, setQuery] = useState('')
 
   const filteredCategories = MOCK_HELP_CATEGORIES.filter((c) =>
@@ -89,7 +91,7 @@ export function AidePage() {
     <AppLayout activeTab="aide">
       <div className={styles.page}>
         <div className={styles.heroBar}>
-          <h1 className={styles.title}>Aide &amp; SAV</h1>
+          <h1 className={styles.title}>{t('aide.title')}</h1>
           <div className={styles.searchWrap}>
             <span className={styles.searchIcon} aria-hidden="true">
               <SearchIcon />
@@ -97,16 +99,16 @@ export function AidePage() {
             <input
               type="search"
               className={styles.searchInput}
-              placeholder="Rechercher une question"
+              placeholder={t('aide.searchPlaceholder')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              aria-label="Rechercher une question"
+              aria-label={t('aide.searchPlaceholder')}
             />
           </div>
         </div>
 
         <section className={styles.section} aria-labelledby="popular-heading">
-          <h2 id="popular-heading" className={styles.sectionTitle}>Questions populaires</h2>
+          <h2 id="popular-heading" className={styles.sectionTitle}>{t('aide.popular')}</h2>
           <div className={styles.categoryGrid}>
             {filteredCategories.map((cat) => (
               <button key={cat.id} type="button" className={styles.categoryCard}>
@@ -120,7 +122,7 @@ export function AidePage() {
         </section>
 
         <section className={styles.section} aria-labelledby="problems-heading">
-          <h2 id="problems-heading" className={styles.sectionTitle}>Signaler un problème</h2>
+          <h2 id="problems-heading" className={styles.sectionTitle}>{t('aide.reportProblem')}</h2>
           <ul className={styles.problemList}>
             {MOCK_HELP_PROBLEMS.map((p) => (
               <li key={p.id}>
@@ -138,7 +140,7 @@ export function AidePage() {
         <div className={styles.callSection}>
           <a href="tel:3246" className={styles.callBtn}>
             <PhoneIcon />
-            Appeler le service client
+            {t('aide.callCustomerService')}
           </a>
         </div>
       </div>

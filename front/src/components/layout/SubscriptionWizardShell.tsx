@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import logo from '../../assets/comutitres_v_couleur.svg'
 import styles from './SubscriptionWizardShell.module.css'
 
@@ -29,22 +30,23 @@ export function SubscriptionWizardShell({
   totalSteps,
   stepper,
 }: SubscriptionWizardShellProps) {
+  const { t } = useTranslation('common')
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
-        <Link to="/" className={styles.closeBtn} aria-label="Fermer">
+        <Link to="/" className={styles.closeBtn} aria-label={t('actions.close')}>
           <CloseIcon />
         </Link>
-        <img src={logo} alt="Comutitres" className={styles.logo} />
+        <img src={logo} alt={t('brand.name')} className={styles.logo} />
         <span className={styles.headerSpacer} aria-hidden="true" />
       </header>
 
       <div className={styles.frame}>
         <div className={styles.intro}>
-          <h1 className={styles.title}>Nouvelle souscription</h1>
+          <h1 className={styles.title}>{t('newSubscription')}</h1>
           {stepper}
           <span className={styles.stepBadge}>
-            Étape {step} sur {totalSteps}
+            {t('stepOf', { step, total: totalSteps })}
           </span>
         </div>
 

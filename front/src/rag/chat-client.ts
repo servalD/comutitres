@@ -3,6 +3,8 @@
  * The backend responds in NDJSON — one JSON event per line — which we parse
  * incrementally so tokens can be rendered as they arrive.
  */
+import i18n from '../i18n'
+
 // The backend serves every route under the global `/api` prefix. VITE_API_URL
 // may or may not already include it (host-only in dev, '/api' or same-origin in
 // prod), so normalize to exactly one `/api`.
@@ -40,7 +42,7 @@ export async function* streamRagChat(
   })
 
   if (!res.ok || !res.body) {
-    throw new Error(`Requête à l'assistant échouée (${res.status})`)
+    throw new Error(i18n.t('chatbot.requestFailed', { ns: 'common', status: res.status }))
   }
 
   const reader = res.body.getReader()

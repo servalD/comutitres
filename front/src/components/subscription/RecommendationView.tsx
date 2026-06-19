@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import styles from './RecommendationView.module.css'
 import type { SubscriptionProductId } from '../../data/mock'
 import { MOCK_SUBSCRIPTION } from '../../data/mock'
@@ -27,6 +28,7 @@ function DocIcon() {
 }
 
 export function RecommendationView({ beneficiaryName, selectedId, onSelect, onContinue }: RecommendationViewProps) {
+  const { t } = useTranslation('subscription')
   const { products } = MOCK_SUBSCRIPTION
   const recommended = products.find((p) => p.id === 'imagine-r-junior')!
   const alternative = products.find((p) => p.id === 'imagine-r-scolaire')!
@@ -34,9 +36,7 @@ export function RecommendationView({ beneficiaryName, selectedId, onSelect, onCo
 
   return (
     <div className={styles.root}>
-      <p className={styles.intro}>
-        Nous avons sélectionné le forfait le plus adapté à votre profil
-      </p>
+      <p className={styles.intro}>{t('recommendationView.intro')}</p>
 
       <div className={styles.cards}>
         <button
@@ -47,11 +47,11 @@ export function RecommendationView({ beneficiaryName, selectedId, onSelect, onCo
           <div className={styles.cardTop}>
             <div className={styles.cardLeft}>
               <span className={styles.recommendedBadge}>
-                ★ Recommandé pour {beneficiaryName}
+                {t('recommendationView.recommendedFor', { name: beneficiaryName })}
               </span>
               <h3 className={styles.productName}>{recommended.label}</h3>
               <p className={styles.price}>{recommended.price}</p>
-              <p className={styles.priceMonthly}>Soit {recommended.priceMonthly}</p>
+              <p className={styles.priceMonthly}>{t('recommendationView.monthly', { price: recommended.priceMonthly })}</p>
             </div>
             <div className={styles.cardVisual} aria-hidden="true">
               <span className={styles.cardBrand}>imagine</span>
@@ -74,7 +74,7 @@ export function RecommendationView({ beneficiaryName, selectedId, onSelect, onCo
           onClick={() => onSelect(alternative.id)}
         >
           <div className={styles.altHeader}>
-            <span className={styles.altBadge}>Alternative</span>
+            <span className={styles.altBadge}>{t('recommendationView.alternative')}</span>
           </div>
           <h3 className={styles.altName}>{alternative.label}</h3>
           <p className={styles.altPrice}>{alternative.price}</p>
@@ -83,7 +83,7 @@ export function RecommendationView({ beneficiaryName, selectedId, onSelect, onCo
       </div>
 
       <section className={styles.docsSection}>
-        <h4 className={styles.docsTitle}>Documents nécessaires</h4>
+        <h4 className={styles.docsTitle}>{t('recommendationView.documentsNeeded')}</h4>
         <div className={styles.docsList}>
           {selected.requiredDocuments.map((doc) => (
             <div key={doc} className={styles.docItem}>
@@ -96,10 +96,10 @@ export function RecommendationView({ beneficiaryName, selectedId, onSelect, onCo
 
       <div className={styles.footer}>
         <button type="button" className={styles.continueBtn} onClick={onContinue}>
-          Continuer avec ce forfait
+          {t('recommendationView.continueWith')}
         </button>
         <button type="button" className={styles.otherLink} onClick={() => onSelect(alternative.id)}>
-          Voir les autres forfaits
+          {t('recommendationView.seeOthers')}
         </button>
       </div>
     </div>

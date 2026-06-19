@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { AppShell } from './components/layout/AppShell'
 import { RagChatbot } from './components/RagChatbot'
@@ -38,13 +39,18 @@ import {
   type AuthZone,
 } from './auth/auth-zones'
 
+function LoadingScreen() {
+  const { t } = useTranslation('common')
+  return <p style={{ padding: '2rem', textAlign: 'center' }}>{t('loading')}</p>
+}
+
 function ProtectedRoute({ zone }: { zone: AuthZone }) {
   const { token, isLoading } = useAuth()
   const location = useLocation()
   const loginTo = loginForZone(zone)
 
   if (isLoading) {
-    return <p style={{ padding: '2rem', textAlign: 'center' }}>Chargement…</p>
+    return <LoadingScreen />
   }
   if (!token) {
     return <Navigate to={loginTo} replace state={{ from: location.pathname }} />
@@ -63,7 +69,7 @@ function PublicRoute({
   const { token, isLoading } = useAuth()
 
   if (isLoading) {
-    return <p style={{ padding: '2rem', textAlign: 'center' }}>Chargement…</p>
+    return <LoadingScreen />
   }
   if (token) {
     return <Navigate to={homeForZone(zone)} replace />
@@ -82,7 +88,7 @@ function MobilityFallback() {
   const location = useLocation()
 
   if (isLoading) {
-    return <p style={{ padding: '2rem', textAlign: 'center' }}>Chargement…</p>
+    return <LoadingScreen />
   }
   if (!token) {
     const loginTo = loginPathForReturnTo(location.pathname)

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Trans, useTranslation } from 'react-i18next'
 import { AppLayout } from '../components/layout/AppLayout'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Avatar } from '../components/ui/Avatar'
@@ -43,38 +44,44 @@ function statusClass(status: string) {
 const ADD_PERSON_PATH = '/mobility/new'
 
 export function MonFoyerPage() {
+  const { t } = useTranslation('foyer')
   const { members, loading, error } = useHouseholdData()
 
   return (
     <AppLayout activeTab="foyer">
       <div className={styles.page}>
         <PageHeader
-          title="Mon foyer"
+          title={t('common:tabs.foyer')}
           backTo="/"
-          subtitle="Gérez les personnes de votre compte"
+          subtitle={t('foyer.subtitle')}
         />
 
         {error && (
           <p className={styles.loadError} role="status">
-            {error} Affichage de démonstration.
+            {error} {t('espace.demoFallback')}
           </p>
         )}
 
         <div className={styles.toolbar}>
           <p className={styles.count}>
-            <strong>{loading ? '…' : members.length}</strong> personnes rattachées
+            <Trans
+              i18nKey="foyer.count"
+              ns="foyer"
+              values={{ count: loading ? '…' : members.length }}
+              components={{ strong: <strong /> }}
+            />
           </p>
           <Link to={ADD_PERSON_PATH} state={{ from: '/foyer' }} className={styles.toolbarLink}>
             <Button className={styles.toolbarBtn}>
               <PlusIcon />
-              Ajouter une personne
+              {t('foyer.addPerson')}
             </Button>
           </Link>
         </div>
 
-        <ul className={styles.memberGrid} aria-label="Membres du foyer">
+        <ul className={styles.memberGrid} aria-label={t('foyer.membersAria')}>
           {loading ? (
-            <li className={styles.memberLoading}>Chargement du foyer…</li>
+            <li className={styles.memberLoading}>{t('espace.loadingHousehold')}</li>
           ) : (
             members.map((member) => (
             <li key={member.id}>
@@ -93,13 +100,13 @@ export function MonFoyerPage() {
                         {member.firstName} {member.lastName}
                       </span>
                       {member.isSelf && (
-                        <span className={styles.youBadge}>Vous</span>
+                        <span className={styles.youBadge}>{t('espace.you')}</span>
                       )}
                     </div>
 
                     <div className={styles.memberTags}>
                       <span className={styles.tag}>{member.role}</span>
-                      <span className={styles.tag}>{member.age} ans</span>
+                      <span className={styles.tag}>{t('ageYears', { count: member.age })}</span>
                     </div>
 
                     <span
@@ -123,16 +130,14 @@ export function MonFoyerPage() {
             <span className={styles.addIcon} aria-hidden="true">
               <PlusIcon />
             </span>
-            <span className={styles.addLabel}>Ajouter une personne</span>
-            <span className={styles.addHint}>
-              Enfant, conjoint ou personne à charge
-            </span>
+            <span className={styles.addLabel}>{t('foyer.addPerson')}</span>
+            <span className={styles.addHint}>{t('foyer.addHint')}</span>
           </Link>
 
           <Link to={ADD_PERSON_PATH} state={{ from: '/foyer' }} className={styles.mobileAddLink}>
             <Button fullWidth className={styles.mobileAddBtn}>
               <PlusIcon />
-              Ajouter une personne
+              {t('foyer.addPerson')}
             </Button>
           </Link>
         </div>

@@ -1,9 +1,6 @@
 import type { CharacterId } from '../components/ui/Avatar'
-import {
-  productLabels,
-  profileLabels,
-  relationshipLabels,
-} from '../constants/labels'
+import i18n from '../i18n'
+import { labelFor } from '../constants/labels'
 import type {
   Contract,
   ContractStatus,
@@ -44,12 +41,8 @@ const PENDING_CONTRACT_STATUSES: ContractStatus[] = [
   'pending_payment',
 ]
 
-const DOSSIER_STEP_HINTS: Record<number, string> = {
-  1: 'Complétez les informations pour avancer dans la demande.',
-  2: 'Complétez vos justificatifs pour avancer dans la demande.',
-  3: 'Vérifiez votre dossier pour passer à l’étape suivante.',
-  4: 'Finalisez le paiement pour valider la souscription.',
-  5: 'Votre demande est en cours de validation.',
+function dossierStepHint(step: number): string {
+  return i18n.t(`stepHints.${step}`, { ns: 'dossier', defaultValue: i18n.t('stepHints.2', { ns: 'dossier' }) })
 }
 
 function hasActiveRelationship(
@@ -69,28 +62,31 @@ export function mapIdentityRoleTag(
   identity: MobilityIdentityWithRelationships,
 ): string {
   if (hasActiveRelationship(identity, 'payer')) {
-    return relationshipLabels.payer
+    return labelFor.relationship('payer')
   }
   if (identity.currentProfile === 'junior') {
-    return profileLabels.junior
+    return labelFor.profile('junior')
   }
-  return profileLabels[identity.currentProfile]
+  return labelFor.profile(identity.currentProfile)
 }
 
 export function mapContractsToStatusLabel(contracts: Contract[]): string {
   const active = contracts.find((c) => c.status === 'active')
   if (active) {
-    return `${productLabels[active.productType]} actif`
+    return i18n.t('household.activeSubscription', {
+      ns: 'foyer',
+      product: labelFor.product(active.productType),
+    })
   }
 
   const pending = contracts.find((c) =>
     PENDING_CONTRACT_STATUSES.includes(c.status),
   )
   if (pending) {
-    return 'Dossier en cours'
+    return i18n.t('household.inProgress', { ns: 'foyer' })
   }
 
-  return 'Aucun abonnement'
+  return i18n.t('household.noSubscription', { ns: 'foyer' })
 }
 
 function contractStatusToStep(status: ContractStatus): number {
@@ -154,12 +150,12 @@ export function buildDossierFromContracts(
 
     const step = contractStatusToStep(pending.status)
     return {
-      product: productLabels[pending.productType],
+      product: labelFor.product(pending.productType),
       beneficiaryFirstName: identity.firstName,
       currentStep: step,
       totalSteps: MOCK_DOSSIER.totalSteps,
       steps: MOCK_DOSSIER.steps,
-      stepHint: DOSSIER_STEP_HINTS[step] ?? DOSSIER_STEP_HINTS[2],
+      stepHint: dossierStepHint(step),
     }
   }
   return null
@@ -176,7 +172,7 @@ export function mockDossierView(): DossierView {
     currentStep: MOCK_DOSSIER.currentStep,
     totalSteps: MOCK_DOSSIER.totalSteps,
     steps: MOCK_DOSSIER.steps,
-    stepHint: 'Complétez vos justificatifs pour avancer dans la demande.',
+    stepHint: dossierStepHint(2),
   }
 }
 

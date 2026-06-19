@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { SubscriptionWizardShell } from '../components/layout/SubscriptionWizardShell'
 import { RoleAssignmentForm } from '../components/subscription/RoleAssignmentForm'
 import { UsageSelectionCards } from '../components/subscription/UsageSelectionCards'
@@ -55,11 +56,6 @@ function beneficiaryIcon(person: SubscriptionBeneficiaryView) {
   return <ChildIcon />
 }
 
-function beneficiaryLabel(person: SubscriptionBeneficiaryView) {
-  const fullName = `${person.firstName} ${person.lastName}`
-  return person.isSelf ? `${fullName} (Vous)` : fullName
-}
-
 function getDefaultProductForCategory(
   category: BeneficiaryChoice,
   products: typeof MOCK_SUBSCRIPTION.products,
@@ -70,9 +66,15 @@ function getDefaultProductForCategory(
 
 export function NouvelleSouscriptionPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('subscription')
   const { user } = useAuth()
   const { products } = MOCK_SUBSCRIPTION
   const { beneficiaries, loading, error } = useSubscriptionBeneficiaries()
+
+  const beneficiaryLabel = (person: SubscriptionBeneficiaryView) => {
+    const fullName = `${person.firstName} ${person.lastName}`
+    return person.isSelf ? `${fullName} ${t('nouvelle.youSuffix')}` : fullName
+  }
 
   const defaultBeneficiary = beneficiaries.find((b) => b.isSelf) ?? beneficiaries[0]
   const ownerBeneficiary = beneficiaries.find((b) => b.isSelf) ?? defaultBeneficiary
@@ -113,11 +115,11 @@ export function NouvelleSouscriptionPage() {
 
   const getStepTitle = () => {
     switch (step) {
-      case 1: return 'Pour qui souhaitez-vous souscrire ?'
-      case 2: return 'Informations du bénéficiaire'
-      case 3: return 'Rôles et responsabilités'
-      case 4: return 'Quel est votre usage principal ?'
-      case 5: return 'Notre recommandation ✦'
+      case 1: return t('nouvelle.step1Title')
+      case 2: return t('nouvelle.step2Title')
+      case 3: return t('nouvelle.step3Title')
+      case 4: return t('nouvelle.step4Title')
+      case 5: return t('nouvelle.step5Title')
       default: return ''
     }
   }
@@ -125,7 +127,7 @@ export function NouvelleSouscriptionPage() {
   const getStepSubtitle = () => {
     switch (step) {
       case 4:
-        return 'Votre réponse nous aide à vous proposer les titres les plus adaptés à vos besoins.'
+        return t('nouvelle.step4Subtitle')
       default:
         return undefined
     }
@@ -138,11 +140,11 @@ export function NouvelleSouscriptionPage() {
           <>
             {error && (
               <p className={styles.loadError} role="status">
-                {error} Affichage de démonstration.
+                {error} {t('foyer:espace.demoFallback')}
               </p>
             )}
             {loading ? (
-              <p className={styles.loadingHint}>Chargement de votre foyer…</p>
+              <p className={styles.loadingHint}>{t('nouvelle.loadingHousehold')}</p>
             ) : (
               <div className={styles.selectionGrid}>
                 {beneficiaries.map((person) => (
@@ -155,7 +157,7 @@ export function NouvelleSouscriptionPage() {
                   />
                 ))}
                 <SelectionCard
-                  label="Ajouter une personne"
+                  label={t('foyer:foyer.addPerson')}
                   icon={<AddPersonIcon />}
                   selected={false}
                   onClick={() =>
@@ -164,9 +166,7 @@ export function NouvelleSouscriptionPage() {
                 />
               </div>
             )}
-            <InfoBanner>
-              Si la personne est mineure, vous devrez renseigner le payeur.
-            </InfoBanner>
+            <InfoBanner>{t('nouvelle.minorNotice')}</InfoBanner>
           </>
         )
 
@@ -175,7 +175,7 @@ export function NouvelleSouscriptionPage() {
           <Card key={selectedBeneficiary?.id} className={styles.formCard}>
             <div className={styles.fieldGrid}>
               <label className={styles.field}>
-                <span>Prénom</span>
+                <span>{t('nouvelle.firstName')}</span>
                 <input
                   type="text"
                   defaultValue={selectedBeneficiary?.firstName ?? ''}
@@ -183,7 +183,7 @@ export function NouvelleSouscriptionPage() {
                 />
               </label>
               <label className={styles.field}>
-                <span>Nom</span>
+                <span>{t('nouvelle.lastName')}</span>
                 <input
                   type="text"
                   defaultValue={selectedBeneficiary?.lastName ?? ''}
@@ -191,7 +191,7 @@ export function NouvelleSouscriptionPage() {
                 />
               </label>
               <label className={styles.field}>
-                <span>Date de naissance</span>
+                <span>{t('nouvelle.birthDate')}</span>
                 <input
                   type="date"
                   defaultValue={selectedBeneficiary?.birthDate ?? ''}
@@ -199,7 +199,7 @@ export function NouvelleSouscriptionPage() {
                 />
               </label>
               <label className={styles.field}>
-                <span>Email de contact</span>
+                <span>{t('nouvelle.contactEmail')}</span>
                 <input type="email" defaultValue={contactEmail} readOnly />
               </label>
             </div>
@@ -246,7 +246,7 @@ export function NouvelleSouscriptionPage() {
           <div className={styles.stepHeader}>
             {step < TOTAL_STEPS && (
               <p className={styles.stepLabel}>
-                Étape {step} sur {TOTAL_STEPS}
+                {t('common:stepOf', { step, total: TOTAL_STEPS })}
               </p>
             )}
             <h2 className={styles.question}>{getStepTitle()}</h2>
@@ -265,11 +265,11 @@ export function NouvelleSouscriptionPage() {
               onClick={goNext}
               disabled={loading || !selectedBeneficiary}
             >
-              Continuer
+              {t('common:actions.continue')}
             </Button>
             {step > 1 && (
               <button type="button" className={styles.backLink} onClick={goBack}>
-                Retour
+                {t('common:actions.back')}
               </button>
             )}
           </footer>

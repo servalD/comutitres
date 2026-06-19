@@ -1,3 +1,5 @@
+import i18n from '../i18n';
+
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
 const MOCK_MODE = import.meta.env.VITE_MOCK_AUTH === 'true';
 
@@ -108,7 +110,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     const message =
-      (body as { message?: string }).message ?? `Erreur ${res.status}`;
+      (body as { message?: string }).message ??
+      i18n.t('errors.http', { ns: 'common', status: res.status });
     throw new Error(message);
   }
 

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { AppLayout } from '../../components/layout/AppLayout'
 import { Button } from '../../components/ui/Button'
 import { VirtualPassCard } from '../../components/dossier/VirtualPassCard'
@@ -33,6 +34,7 @@ function InfoIcon() {
 }
 
 export function DossierConfirmationPage() {
+  const { t } = useTranslation('dossier')
   return (
     <AppLayout activeTab="accueil">
       <div className={styles.page}>
@@ -55,38 +57,36 @@ export function DossierConfirmationPage() {
           </span>
 
           <div className={styles.badge}>
-            Titre actif
+            {t('confirmation.activeBadge')}
           </div>
 
-          <h1 className={styles.title}>Imagine R Junior est actif !</h1>
-          <p className={styles.subtitle}>
-            Léa peut voyager dès maintenant sur le réseau Île-de-France.
-          </p>
+          <h1 className={styles.title}>{t('confirmation.title', { product: 'Imagine R Junior' })}</h1>
+          <p className={styles.subtitle}>{t('confirmation.subtitle', { name: 'Léa' })}</p>
         </div>
 
         <div className={styles.cardWrap}>
           <VirtualPassCard
             holderName="Léa Dupont"
             product="Imagine R Junior"
-            validity="Valide jusqu'au 31/08/2027"
+            validity={t('confirmation.validUntil', { date: '31/08/2027' })}
           />
         </div>
 
         <div className={styles.actions}>
           <Link to="/foyer/2">
             <Button fullWidth>
-              Voir mon titre
+              {t('confirmation.viewPass')}
             </Button>
           </Link>
           <button type="button" className={styles.downloadBtn}>
             <DownloadIcon />
-            Télécharger l'attestation
+            {t('confirmation.download')}
           </button>
         </div>
 
         <div className={styles.renewalBanner}>
           <span className={styles.renewalIcon} aria-hidden="true"><InfoIcon /></span>
-          <p className={styles.renewalText}>Prochaine échéance : renouvellement dans 11 mois</p>
+          <p className={styles.renewalText}>{t('confirmation.renewal', { count: 11 })}</p>
         </div>
       </div>
     </AppLayout>

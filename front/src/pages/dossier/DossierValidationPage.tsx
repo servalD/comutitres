@@ -1,18 +1,11 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { AppLayout } from '../../components/layout/AppLayout'
 import { PageHeader } from '../../components/layout/PageHeader'
 import { Button } from '../../components/ui/Button'
 import { Stepper } from '../../components/ui/Stepper'
 import { ValidationTimeline } from '../../components/dossier/ValidationTimeline'
 import styles from './DossierValidationPage.module.css'
-
-const DOSSIER_STEPS = [
-  { id: 1, label: 'Informations' },
-  { id: 2, label: 'Justificatifs' },
-  { id: 3, label: 'Photo' },
-  { id: 4, label: 'Récapitulatif' },
-  { id: 5, label: 'Validation' },
-]
 
 function SandglassIllustration() {
   return (
@@ -31,23 +24,29 @@ function SandglassIllustration() {
 }
 
 export function DossierValidationPage() {
+  const { t } = useTranslation('dossier')
+  const steps = [
+    { id: 1, label: t('validation.steps.informations') },
+    { id: 2, label: t('validation.steps.justificatifs') },
+    { id: 3, label: t('validation.steps.photo') },
+    { id: 4, label: t('validation.steps.recapitulatif') },
+    { id: 5, label: t('validation.steps.validation') },
+  ]
   return (
     <AppLayout activeTab="accueil">
       <div className={styles.page}>
-        <PageHeader title="Mon dossier" backTo="/dossier" />
+        <PageHeader title={t('detail.title')} backTo="/dossier" />
 
         <div className={styles.stepperWrap}>
-          <Stepper steps={DOSSIER_STEPS} currentStep={4} />
+          <Stepper steps={steps} currentStep={4} />
         </div>
 
         <div className={styles.layout}>
           <div className={styles.hero}>
             <SandglassIllustration />
             <div className={styles.heroText}>
-              <h1 className={styles.heroTitle}>Votre dossier est en cours de validation</h1>
-              <p className={styles.heroSubtitle}>
-                Nos équipes vérifient vos documents. Vous recevrez une notification dès que votre titre sera prêt.
-              </p>
+              <h1 className={styles.heroTitle}>{t('validation.heroTitle')}</h1>
+              <p className={styles.heroSubtitle}>{t('validation.heroSubtitle')}</p>
             </div>
           </div>
 
@@ -59,11 +58,11 @@ export function DossierValidationPage() {
         <div className={styles.footer}>
           <Link to="/dossier">
             <Button>
-              Suivre mon dossier
+              {t('validation.track')}
             </Button>
           </Link>
           <Link to="/aide" className={styles.helpLink}>
-            Une question ? Consulter l'aide
+            {t('validation.helpLink')}
           </Link>
         </div>
       </div>

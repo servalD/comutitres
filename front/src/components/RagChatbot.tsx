@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import ChatBot, { Button, type Settings, type Styles } from 'react-chatbotify'
 import MarkdownRenderer from '@rcb-plugins/markdown-renderer'
+import { useTranslation } from 'react-i18next'
 import { streamRagChat } from '../rag/chat-client'
 import './RagChatbot.css'
+
+const BCP47: Record<string, string> = { fr: 'fr-FR', en: 'en-US' }
 
 /** Rough markdown → plain text so the spoken version isn't full of `**`, `#`… */
 function stripMarkdown(md: string): string {
@@ -24,17 +27,18 @@ function stripMarkdown(md: string): string {
 
 /** Speak text via the browser SpeechSynthesis API. Avoids the Chrome bug where
  *  cancel() immediately followed by speak() drops the utterance. */
-function speak(text: string) {
+function speak(text: string, lang = 'fr-FR') {
   const synth = window.speechSynthesis
   if (!synth || !text) return
 
+  const prefix = lang.slice(0, 2).toLowerCase()
   const utter = () => {
     const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'fr-FR'
-    const frVoice = synth
+    utterance.lang = lang
+    const voice = synth
       .getVoices()
-      .find((v) => v.lang?.toLowerCase().startsWith('fr'))
-    if (frVoice) utterance.voice = frVoice
+      .find((v) => v.lang?.toLowerCase().startsWith(prefix))
+    if (voice) utterance.voice = voice
     synth.resume()
     synth.speak(utterance)
   }
@@ -50,8 +54,9 @@ function speak(text: string) {
 /** Our own audio toggle in the chat header — RCB's built-in audio doesn't read
  *  streamed messages, so we own the feature. */
 function AudioToggleButton({ onChange }: { onChange: (on: boolean) => void }) {
+  const { t } = useTranslation('common')
   const [on, setOn] = useState(false)
-  const label = on ? 'Couper la lecture vocale' : 'Lire les réponses à voix haute'
+  const label = on ? t('chatbot.audioOff') : t('chatbot.audioOn')
   return (
     <button
       type="button"
@@ -83,6 +88,8 @@ function AudioToggleButton({ onChange }: { onChange: (on: boolean) => void }) {
  * answer into chat and optionally reads it aloud.
  */
 export function RagChatbot() {
+  const { t, i18n } = useTranslation('common')
+  const lang = BCP47[i18n.language] ?? 'fr-FR'
   const audioOnRef = useRef(false)
 
   // Stop any speech when the widget unmounts.
@@ -93,8 +100,7 @@ export function RagChatbot() {
   const flow = useMemo(
     () => ({
       start: {
-        message:
-          "Bonjour ! Je suis l'assistant Comutitres. Posez-moi une question sur les titres de transport Île-de-France (forfaits, Navigo, imagine R, Solidarité Transport, SAV…).",
+        message: t('chatbot.greeting'),
         renderMarkdown: ['BOT'],
         path: 'loop',
       },
@@ -118,31 +124,29 @@ export function RagChatbot() {
                 await params.streamMessage(accumulated)
               } else if (event.type === 'error') {
                 await params.injectMessage(
-                  `Désolé, une erreur est survenue : ${event.message}`,
+                  t('chatbot.errorPrefix', { message: event.message }),
                 )
                 return
               }
             }
             if (streamed) {
               await params.endStreamMessage('BOT')
-              if (audioOnRef.current) speak(stripMarkdown(accumulated))
+              if (audioOnRef.current) speak(stripMarkdown(accumulated), lang)
             } else {
-              await params.injectMessage(
-                "Désolé, je n'ai pas pu générer de réponse.",
-              )
+              await params.injectMessage(t('chatbot.noAnswer'))
             }
           } catch (err) {
             await params.injectMessage(
-              `Désolé, une erreur est survenue : ${
-                err instanceof Error ? err.message : String(err)
-              }`,
+              t('chatbot.errorPrefix', {
+                message: err instanceof Error ? err.message : String(err),
+              }),
             )
           }
         },
         path: 'loop',
       },
     }),
-    [],
+    [t, lang],
   )
 
   // Stable settings: changing this prop re-initializes the flow.
@@ -151,7 +155,7 @@ export function RagChatbot() {
       general: { showFooter: false },
       tooltip: { mode: 'NEVER' },
       header: {
-        title: 'Assistant Comutitres',
+        title: t('chatbot.title'),
         // Custom speaker toggle + the default close button.
         buttons: [
           <AudioToggleButton
@@ -160,7 +164,7 @@ export function RagChatbot() {
               audioOnRef.current = active
               // Speaking here (inside the click gesture) both unlocks the
               // SpeechSynthesis API and gives an immediate audible confirmation.
-              if (active) speak('Lecture vocale activée.')
+              if (active) speak(t('chatbot.audioEnabled'), lang)
               else window.speechSynthesis?.cancel()
             }}
           />,
@@ -175,7 +179,7 @@ export function RagChatbot() {
       voice: {
         disabled: false,
         defaultToggledOn: false,
-        language: 'fr-FR',
+        language: lang,
         autoSendDisabled: false,
         autoSendPeriod: 1500,
       },
@@ -184,11 +188,10 @@ export function RagChatbot() {
       chatHistory: { disabled: true },
       botBubble: { simulateStream: false },
       chatInput: {
-        enabledPlaceholderText:
-          'Posez votre question sur les titres de transport…',
+        enabledPlaceholderText: t('chatbot.placeholder'),
       },
     }),
-    [],
+    [t, lang],
   )
 
   // Explicit, high-contrast colors so nothing relies on the app's global text

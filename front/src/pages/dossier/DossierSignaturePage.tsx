@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { AppLayout } from '../../components/layout/AppLayout'
 import { PageHeader } from '../../components/layout/PageHeader'
 import { Button } from '../../components/ui/Button'
@@ -35,12 +36,13 @@ function ChevronRight() {
 
 export function DossierSignaturePage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('dossier')
   const [accepted, setAccepted] = useState(false)
 
   return (
     <AppLayout activeTab="accueil">
       <div className={styles.page}>
-        <PageHeader title="Mon dossier" backTo="/dossier" />
+        <PageHeader title={t('detail.title')} backTo="/dossier" />
 
         <div className={styles.stepperWrap}>
           <DossierSubStepper steps={DOSSIER_SUB_STEPS} currentStep={2} />
@@ -48,16 +50,14 @@ export function DossierSignaturePage() {
 
         <div className={styles.layout}>
           <div className={styles.main}>
-            <p className={styles.context}>
-              En tant que payeur, vous devez signer les CGVU pour valider la souscription de Léa.
-            </p>
+            <p className={styles.context}>{t('signature.context', { name: 'Léa' })}</p>
 
             <button type="button" className={styles.pdfCard}>
               <span className={styles.pdfIcon} aria-hidden="true">
                 <PdfIcon />
               </span>
               <div className={styles.pdfInfo}>
-                <p className={styles.pdfTitle}>Conditions Générales de Vente et d'Utilisation</p>
+                <p className={styles.pdfTitle}>{t('signature.cgvuTitle')}</p>
                 <p className={styles.pdfSize}>PDF — 8,4 Mo</p>
               </div>
               <ChevronRight />
@@ -70,35 +70,35 @@ export function DossierSignaturePage() {
                 onChange={(e) => setAccepted(e.target.checked)}
                 className={styles.checkbox}
               />
-              <span>J'ai lu et j'accepte les CGVU</span>
+              <span>{t('signature.accept')}</span>
             </label>
 
             <div className={styles.yousignBanner}>
               <span className={styles.yousignBadge}>
                 <ShieldIcon />
-                Signature électronique sécurisée
+                {t('signature.secureSignature')}
               </span>
-              <span className={styles.yousignBrand}>via <strong>YouSign</strong></span>
+              <span className={styles.yousignBrand}>{t('signature.via')} <strong>YouSign</strong></span>
             </div>
           </div>
 
           <div className={styles.sidebar}>
             <div className={styles.recap}>
-              <p className={styles.recapTitle}>Récapitulatif</p>
+              <p className={styles.recapTitle}>{t('signature.recap')}</p>
               <div className={styles.recapRow}>
-                <span className={styles.recapLabel}>Forfait</span>
+                <span className={styles.recapLabel}>{t('signature.plan')}</span>
                 <span className={styles.recapValue}>Imagine R Junior</span>
               </div>
               <div className={styles.recapRow}>
-                <span className={styles.recapLabel}>Bénéficiaire</span>
+                <span className={styles.recapLabel}>{t('signature.beneficiary')}</span>
                 <span className={styles.recapValue}>Léa Dupont</span>
               </div>
               <div className={styles.recapRow}>
-                <span className={styles.recapLabel}>Payeur</span>
+                <span className={styles.recapLabel}>{t('signature.payer')}</span>
                 <span className={styles.recapValue}>Marie Dupont</span>
               </div>
               <div className={styles.recapRow}>
-                <span className={styles.recapLabel}>Montant annuel</span>
+                <span className={styles.recapLabel}>{t('signature.annualAmount')}</span>
                 <span className={styles.recapValue}>384,00 €</span>
               </div>
             </div>
@@ -108,7 +108,7 @@ export function DossierSignaturePage() {
         <div className={styles.footer}>
           <Button fullWidth disabled={!accepted} onClick={() => navigate('/dossier/paiement')}>
             <ShieldIcon />
-            Signer les CGVU
+            {t('signature.sign')}
           </Button>
         </div>
       </div>
