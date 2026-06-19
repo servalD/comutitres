@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { LanguageSwitcher } from '../components/ui/LanguageSwitcher';
 import styles from './Dashboard.module.css';
 
 const RENEWAL_DATE = new Date('2026-09-01').getTime();
@@ -142,6 +143,7 @@ export default function Dashboard() {
             <p className={styles.pageSubtitle}>{t('subtitle')}</p>
           </div>
           <div className={styles.topbarActions}>
+            <LanguageSwitcher />
             <button className={styles.btnAction}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
