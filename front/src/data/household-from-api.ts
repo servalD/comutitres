@@ -8,13 +8,18 @@ import type {
   Contract,
   ContractStatus,
   MobilityIdentityWithRelationships,
+  ProductType,
   RelationshipType,
 } from '../domain/types/mobility'
-import { MOCK_DOSSIER, MOCK_HOUSEHOLD, MOCK_SUBSCRIPTION, MOCK_USER } from './mock'
+import { MOCK_DOSSIER, MOCK_DOSSIER_MARIE, MOCK_HOUSEHOLD, MOCK_PERSON_JULES, MOCK_PERSON_LEA, MOCK_PERSON_MARIE, MOCK_SUBSCRIPTION, MOCK_USER } from './mock'
+import type { SubscriptionDossierView } from '../domain/subscription-dossier'
+import { sortSubscriptionDossiersByPriority } from '../domain/subscription-dossier'
 import type { BeneficiaryChoice } from './mock'
 import type { Profile } from '../domain/types/mobility'
 
-export type DataSource = 'api' | 'mock'
+import type { IdentityStatus } from '../domain/types/mobility'
+
+export type DataSource = 'api' | 'mock' | 'none'
 
 export interface HouseholdMemberView {
   id: string
@@ -24,17 +29,9 @@ export interface HouseholdMemberView {
   role: string
   status: string
   isSelf: boolean
+  identityStatus?: IdentityStatus
   character?: CharacterId
   avatarVariant?: 'default' | 'child'
-}
-
-export interface DossierView {
-  product: string
-  beneficiaryFirstName: string
-  currentStep: number
-  totalSteps: number
-  steps: { id: number; label: string }[]
-  stepHint: string
 }
 
 const PENDING_CONTRACT_STATUSES: ContractStatus[] = [
@@ -43,14 +40,6 @@ const PENDING_CONTRACT_STATUSES: ContractStatus[] = [
   'pending_payer_signature',
   'pending_payment',
 ]
-
-const DOSSIER_STEP_HINTS: Record<number, string> = {
-  1: 'Complétez les informations pour avancer dans la demande.',
-  2: 'Complétez vos justificatifs pour avancer dans la demande.',
-  3: 'Vérifiez votre dossier pour passer à l’étape suivante.',
-  4: 'Finalisez le paiement pour valider la souscription.',
-  5: 'Votre demande est en cours de validation.',
-}
 
 function hasActiveRelationship(
   identity: MobilityIdentityWithRelationships,
@@ -93,21 +82,6 @@ export function mapContractsToStatusLabel(contracts: Contract[]): string {
   return 'Aucun abonnement'
 }
 
-function contractStatusToStep(status: ContractStatus): number {
-  switch (status) {
-    case 'draft':
-      return 1
-    case 'pending_document':
-      return 2
-    case 'pending_payer_signature':
-      return 3
-    case 'pending_payment':
-      return 4
-    default:
-      return 2
-  }
-}
-
 export function mapIdentityToMember(
   identity: MobilityIdentityWithRelationships,
   contracts: Contract[],
@@ -121,6 +95,7 @@ export function mapIdentityToMember(
     role: mapIdentityRoleTag(identity),
     status: mapContractsToStatusLabel(contracts),
     isSelf: self,
+    identityStatus: identity.status,
     avatarVariant: identity.calculatedAge < 18 ? 'child' : 'default',
   }
 }
@@ -141,43 +116,71 @@ export function findOwnerFirstName(
   return owner?.firstName ?? null
 }
 
-export function buildDossierFromContracts(
-  identities: MobilityIdentityWithRelationships[],
-  contractsByIdentity: Map<string, Contract[]>,
-): DossierView | null {
-  for (const identity of identities) {
-    const contracts = contractsByIdentity.get(identity.id) ?? []
-    const pending = contracts.find((c) =>
-      PENDING_CONTRACT_STATUSES.includes(c.status),
-    )
-    if (!pending) continue
-
-    const step = contractStatusToStep(pending.status)
-    return {
-      product: productLabels[pending.productType],
-      beneficiaryFirstName: identity.firstName,
-      currentStep: step,
-      totalSteps: MOCK_DOSSIER.totalSteps,
-      steps: MOCK_DOSSIER.steps,
-      stepHint: DOSSIER_STEP_HINTS[step] ?? DOSSIER_STEP_HINTS[2],
-    }
-  }
-  return null
-}
-
 export function mockHouseholdMembers(): HouseholdMemberView[] {
   return MOCK_HOUSEHOLD.map((m) => ({ ...m }))
 }
 
-export function mockDossierView(): DossierView {
-  return {
+export function mockSubscriptionDossierViews(): SubscriptionDossierView[] {
+  const jules: SubscriptionDossierView = {
+    contractId: 'mock-contract-jules',
     product: MOCK_DOSSIER.product,
+    productCode: 'imagine_r_scolaire',
     beneficiaryFirstName: MOCK_DOSSIER.beneficiaryFirstName,
+    beneficiaryFullName: MOCK_DOSSIER.beneficiaryFullName,
+    payerFullName: `${MOCK_USER.firstName} ${MOCK_USER.lastName}`,
+    payerEmail: 'marie.dupont@email.fr',
+    holderEmail: 'jules.dupont@email.fr',
+    status: 'en_attente_de_justificatif',
+    statusLabel: 'Justificatifs à déposer',
     currentStep: MOCK_DOSSIER.currentStep,
     totalSteps: MOCK_DOSSIER.totalSteps,
     steps: MOCK_DOSSIER.steps,
-    stepHint: 'Complétez vos justificatifs pour avancer dans la demande.',
+    stepHint: '1/3 documents déposés — complétez vos justificatifs.',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    documentsDeposed: 1,
+    documentsRequired: 3,
+    requiredDocumentLabels: [
+      "Pièce d'identité",
+      'Photo',
+      'Certificat scolaire',
+    ],
   }
+
+  const marie: SubscriptionDossierView = {
+    contractId: 'mock-contract-marie',
+    product: MOCK_DOSSIER_MARIE.product,
+    productCode: 'navigo_annuel',
+    beneficiaryFirstName: MOCK_DOSSIER_MARIE.beneficiaryFirstName,
+    beneficiaryFullName: MOCK_DOSSIER_MARIE.beneficiaryFullName,
+    payerFullName: `${MOCK_USER.firstName} ${MOCK_USER.lastName}`,
+    payerEmail: 'marie.dupont@email.fr',
+    holderEmail: 'marie.dupont@email.fr',
+    status: MOCK_DOSSIER_MARIE.status,
+    statusLabel: MOCK_DOSSIER_MARIE.statusLabel,
+    currentStep: MOCK_DOSSIER_MARIE.currentStep,
+    totalSteps: MOCK_DOSSIER.totalSteps,
+    steps: MOCK_DOSSIER.steps,
+    stepHint: 'Signez les CGVU et finalisez le paiement.',
+    createdAt: new Date().toISOString(),
+    documentsDeposed: MOCK_DOSSIER_MARIE.documentsDeposed,
+    documentsRequired: MOCK_DOSSIER_MARIE.documentsRequired,
+    requiredDocumentLabels: [
+      "Pièce d'identité",
+      'Justificatif de domicile',
+      'RIB',
+    ],
+  }
+
+  return sortSubscriptionDossiersByPriority([jules, marie])
+}
+
+export function mockSubscriptionDossierView(): SubscriptionDossierView {
+  return mockSubscriptionDossierViews()[0]!
+}
+
+/** @deprecated use mockSubscriptionDossierView */
+export function mockDossierView(): SubscriptionDossierView {
+  return mockSubscriptionDossierView()
 }
 
 export function mockGreetingFirstName(): string {
@@ -233,6 +236,186 @@ export function mapIdentitiesToSubscriptionBeneficiaries(
   })
 }
 
+export type PersonTitreStatusType = 'active' | 'pending' | 'neutral'
+
+export interface PersonTitreView {
+  label: string
+  validity: string
+  status: string
+  statusType: PersonTitreStatusType
+  productType?: ProductType
+}
+
+export interface PersonDetailView {
+  id: string
+  firstName: string
+  lastName: string
+  age: number
+  profile: string
+  character?: CharacterId
+  roles: {
+    porteurLabel: string
+    payeur: { name: string; isSelf: boolean }
+    responsableLegal: { name: string; isSelf?: boolean }
+  }
+  ageBascule: string | null
+  titre: PersonTitreView | null
+}
+
+export type PersonDetailSection = 'profile' | 'roles' | 'titre' | 'ageBascule'
+
+function findOwnerIdentity(
+  identities: MobilityIdentityWithRelationships[],
+): MobilityIdentityWithRelationships | undefined {
+  return identities.find(isOwner)
+}
+
+function pickPrimaryContract(contracts: Contract[]): Contract | null {
+  return (
+    contracts.find((c) => c.status === 'active') ??
+    contracts.find((c) => PENDING_CONTRACT_STATUSES.includes(c.status)) ??
+    contracts[0] ??
+    null
+  )
+}
+
+function contractToTitreStatusType(status: ContractStatus): PersonTitreStatusType {
+  if (status === 'active') return 'active'
+  if (PENDING_CONTRACT_STATUSES.includes(status)) return 'pending'
+  return 'neutral'
+}
+
+export function mapContractToPersonTitre(contract: Contract): PersonTitreView {
+  const statusType = contractToTitreStatusType(contract.status)
+  const label = productLabels[contract.productType]
+  const pendingLabel =
+    contract.status === 'pending_document'
+      ? 'Validation par nos équipes'
+      : 'Dossier en cours'
+
+  return {
+    label,
+    validity: 'Valable en Île-de-France',
+    status:
+      statusType === 'active'
+        ? `${label} actif`
+        : statusType === 'pending'
+          ? pendingLabel
+          : mapContractsToStatusLabel([contract]),
+    statusType,
+    productType: contract.productType,
+  }
+}
+
+export function ageBasculeMessage(profile: Profile, age: number): string | null {
+  if (profile === 'junior' && age < 11) {
+    return 'Bascule Scolaire prévue à 11 ans'
+  }
+  if (profile === 'scolaire' && age >= 16) {
+    return 'Compte Connect récupérable — passation disponible'
+  }
+  if (profile === 'scolaire' && age < 15) {
+    return 'Compte Connect disponible à 15 ans'
+  }
+  if (profile === 'adulte' && age >= 16 && age < 62) {
+    return 'Navigo Senior à 62 ans'
+  }
+  return null
+}
+
+function mockPersonFromLegacy(
+  legacy: typeof MOCK_PERSON_LEA | typeof MOCK_PERSON_MARIE | typeof MOCK_PERSON_JULES,
+): PersonDetailView {
+  return {
+    id: legacy.id,
+    firstName: legacy.firstName,
+    lastName: legacy.lastName,
+    age: legacy.age,
+    profile: legacy.profile,
+    character: legacy.character,
+    roles: {
+      porteurLabel: legacy.roles.porteur.label,
+      payeur: {
+        name: legacy.roles.payeur.name,
+        isSelf: legacy.roles.payeur.isSelf,
+      },
+      responsableLegal: {
+        name: legacy.roles.responsableLegal.name,
+        isSelf: legacy.roles.responsableLegal.isSelf,
+      },
+    },
+    ageBascule: legacy.ageBascule,
+    titre: legacy.titre,
+  }
+}
+
+export function mockPersonDetailById(id: string | undefined): PersonDetailView {
+  if (id === MOCK_PERSON_MARIE.id) {
+    return mockPersonFromLegacy(MOCK_PERSON_MARIE)
+  }
+  if (id === MOCK_PERSON_JULES.id || id === MOCK_PERSON_LEA.id) {
+    return mockPersonFromLegacy(MOCK_PERSON_JULES)
+  }
+
+  const member = MOCK_HOUSEHOLD.find((m) => m.id === id)
+  if (member?.isSelf) {
+    return mockPersonFromLegacy(MOCK_PERSON_MARIE)
+  }
+  if (member) {
+    return mockPersonFromLegacy(MOCK_PERSON_JULES)
+  }
+
+  return mockPersonFromLegacy(MOCK_PERSON_JULES)
+}
+
+export function mockPersonDetailByProfile(input: {
+  firstName: string
+  isSelf?: boolean
+}): PersonDetailView {
+  const first = input.firstName.trim().toLowerCase()
+  if (first === 'marie' || input.isSelf) {
+    return mockPersonFromLegacy(MOCK_PERSON_MARIE)
+  }
+  if (first === 'jules') {
+    return mockPersonFromLegacy(MOCK_PERSON_JULES)
+  }
+  return mockPersonFromLegacy(MOCK_PERSON_JULES)
+}
+
+export function mapIdentityToPersonDetail(
+  identity: MobilityIdentityWithRelationships,
+  allIdentities: MobilityIdentityWithRelationships[],
+  contracts: Contract[],
+): PersonDetailView {
+  const owner = findOwnerIdentity(allIdentities)
+  const ownerName = owner
+    ? `${owner.firstName} ${owner.lastName}`
+    : 'Responsable du compte'
+  const self = isOwner(identity)
+  const isMinor = identity.calculatedAge < 18
+  const primaryContract = pickPrimaryContract(contracts)
+
+  return {
+    id: identity.id,
+    firstName: identity.firstName,
+    lastName: identity.lastName,
+    age: identity.calculatedAge,
+    profile: profileLabels[identity.currentProfile],
+    character: self ? 'marie' : identity.calculatedAge < 18 ? 'lea' : undefined,
+    roles: {
+      porteurLabel: identity.firstName,
+      payeur: self
+        ? { name: `${identity.firstName} ${identity.lastName}`, isSelf: true }
+        : { name: ownerName, isSelf: true },
+      responsableLegal: isMinor
+        ? { name: ownerName, isSelf: !self }
+        : { name: `${identity.firstName} ${identity.lastName}`, isSelf: self },
+    },
+    ageBascule: ageBasculeMessage(identity.currentProfile, identity.calculatedAge),
+    titre: primaryContract ? mapContractToPersonTitre(primaryContract) : null,
+  }
+}
+
 export function mockSubscriptionBeneficiaries(): SubscriptionBeneficiaryView[] {
   return mockHouseholdMembers().map((member) => {
     const birthDate =
@@ -240,7 +423,7 @@ export function mockSubscriptionBeneficiaries(): SubscriptionBeneficiaryView[] {
         ? MOCK_SUBSCRIPTION.beneficiaryForm.birthDate
         : '1991-03-15'
     const currentProfile: Profile =
-      member.age < 12 ? 'junior' : member.age < 18 ? 'scolaire' : 'adulte'
+      member.age >= 18 ? 'adulte' : member.age >= 12 ? 'scolaire' : 'junior'
 
     return {
       id: member.id,

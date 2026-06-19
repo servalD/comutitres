@@ -11,6 +11,7 @@ import { MobilityIdentityOrmEntity } from '../../modules/mobility/infrastructure
 import { RelationshipOrmEntity } from '../../modules/mobility/infrastructure/relationship.orm-entity';
 import { SupportOrmEntity } from '../../modules/mobility/infrastructure/support.orm-entity';
 import { TimelineEventOrmEntity } from '../../modules/mobility/infrastructure/timeline-event.orm-entity';
+import { RecoveryRequestOrmEntity } from '../../modules/auth/infrastructure/recovery-request.orm-entity';
 import { UserOrmEntity } from '../../modules/users/infrastructure/user.orm-entity';
 
 @Module({
@@ -36,6 +37,7 @@ import { UserOrmEntity } from '../../modules/users/infrastructure/user.orm-entit
           SubscriptionContractOrmEntity,
           CgvuAcceptanceOrmEntity,
           JustificatifOrmEntity,
+          RecoveryRequestOrmEntity,
         ],
         migrations: [__dirname + '/migrations/*.{ts,js}'],
         // Never auto-sync schema: migrations are the single source of truth.
