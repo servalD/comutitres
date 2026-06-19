@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { BottomNav } from './BottomNav'
 import { DesktopNav } from './DesktopNav'
 import { Logo } from './Logo'
+import { LanguageSwitcher } from '../ui/LanguageSwitcher'
 import type { TabId } from './nav-items'
 import styles from './AppLayout.module.css'
 
@@ -40,6 +41,7 @@ export function AppLayout({
 
           <DesktopNav activeTab={activeTab} />
 
+          <LanguageSwitcher />
           {showProfile && (
             <button type="button" className={styles.profileBtn} aria-label={t('myProfile')}>
               <ProfileIcon />

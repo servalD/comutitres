@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import ChatBot, { Button, type Settings, type Styles } from 'react-chatbotify'
+
+const CHAT_ICON =
+  "data:image/svg+xml;charset=utf-8," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -1 24 27" fill="white">' +
+    '<path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/>' +
+    '</svg>',
+  )
 import MarkdownRenderer from '@rcb-plugins/markdown-renderer'
 import { useTranslation } from 'react-i18next'
 import { streamRagChat } from '../rag/chat-client'
@@ -117,7 +125,7 @@ export function RagChatbot() {
           let accumulated = ''
           let streamed = false
           try {
-            for await (const event of streamRagChat(question)) {
+            for await (const event of streamRagChat(question, i18n.language)) {
               if (event.type === 'token') {
                 accumulated += event.delta
                 streamed = true
@@ -154,6 +162,7 @@ export function RagChatbot() {
     () => ({
       general: { showFooter: false },
       tooltip: { mode: 'NEVER' },
+      chatButton: { icon: CHAT_ICON },
       header: {
         title: t('chatbot.title'),
         // Custom speaker toggle + the default close button.
@@ -209,6 +218,7 @@ export function RagChatbot() {
       botBubbleStyle: { backgroundColor: '#f0f4f8', color: '#25303b' },
       userBubbleStyle: { backgroundColor: '#1972d2', color: '#ffffff' },
       chatButtonStyle: { backgroundColor: '#1972d2' },
+      chatIconStyle: { backgroundSize: '28px 28px', backgroundPosition: 'center 38%', backgroundRepeat: 'no-repeat' },
       sendButtonStyle: { backgroundColor: '#1972d2' },
       sendButtonHoveredStyle: { backgroundColor: '#0050aa' },
     }),
