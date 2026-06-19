@@ -29,6 +29,7 @@ export type RagEvent =
 
 export async function* streamRagChat(
   question: string,
+  language: string,
   signal?: AbortSignal,
 ): AsyncGenerator<RagEvent> {
   const res = await fetch(`${API_BASE}/rag/chat`, {
@@ -37,7 +38,7 @@ export async function* streamRagChat(
       'Content-Type': 'application/json',
       Accept: 'application/x-ndjson',
     },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, language }),
     signal,
   })
 

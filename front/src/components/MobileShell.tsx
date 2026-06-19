@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { LanguageSwitcher } from './ui/LanguageSwitcher';
 import styles from './MobileShell.module.css';
 
 type TabId = 'home' | 'titres' | 'alertes' | 'compte' | 'admin';
@@ -121,6 +122,7 @@ export default function MobileShell({
               ))}
             </nav>
             )}
+            <LanguageSwitcher />
           </div>
         </header>
 
