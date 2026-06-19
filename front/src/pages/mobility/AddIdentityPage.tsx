@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { mobilityApi } from '../../api/mobility-api'
 import { ApiError } from '../../api/http-client'
 import {
@@ -13,6 +14,7 @@ const ADDED_PERSON_RELATIONSHIPS = ['payer', 'legal_guardian'] as const
 
 export function AddIdentityPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('mobility')
   const location = useLocation()
   const returnTo =
     (location.state as { from?: string } | null)?.from ?? '/mobility'
@@ -38,7 +40,7 @@ export function AddIdentityPage() {
 
       navigate(returnTo, { replace: true })
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Création impossible')
+      setError(err instanceof ApiError ? err.message : t('add.createError'))
     } finally {
       setLoading(false)
     }
@@ -47,15 +49,12 @@ export function AddIdentityPage() {
   return (
     <div className={styles.page}>
       <Link to={returnTo} className={styles.back}>
-        <span aria-hidden="true">←</span> Retour
+        <span aria-hidden="true">←</span> {t('common:actions.back')}
       </Link>
       <header className={styles.header}>
         <div>
-          <h1>Ajouter une personne</h1>
-          <p>
-            Enfant, neveu ou proche : ajoutez une identité de mobilité à gérer
-            depuis votre espace.
-          </p>
+          <h1>{t('add.title')}</h1>
+          <p>{t('add.subtitle')}</p>
         </div>
       </header>
 

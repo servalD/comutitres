@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { contractsApi, type ContractResponse } from '../../api/contracts'
 import { justificatifsApi } from '../../api/justificatifs'
 import { AppLayout } from '../../components/layout/AppLayout'
@@ -27,6 +28,7 @@ function ShieldIcon() {
 
 export function DossierSignaturePage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('dossier')
   const [searchParams] = useSearchParams()
   const contractId = searchParams.get('contractId') ?? ''
   const { token } = useAuth()
@@ -89,12 +91,12 @@ export function DossierSignaturePage() {
         const popup = window.open(result.signatureLink, '_blank', 'noopener,noreferrer')
         if (!popup) {
           setSignError(
-            'Impossible d’ouvrir un nouvel onglet. Autorisez les pop-ups pour ce site, puis réessayez.',
+            'Impossible d\u2019ouvrir un nouvel onglet. Autorisez les pop-ups pour ce site, puis réessayez.',
           )
         }
         setSigning(false)
       } else {
-        setSignError('Lien de signature non disponible. Réessayez dans quelques instants.')
+        setSignError(t('signature.signLinkUnavailable') ?? 'Lien de signature non disponible. Réessayez dans quelques instants.')
         setSigning(false)
       }
     } catch (err) {
@@ -164,7 +166,7 @@ export function DossierSignaturePage() {
     return (
       <AppLayout activeTab="accueil">
         <div className={styles.page}>
-          <PageHeader title="Mon dossier" backTo="/dossier" />
+          <PageHeader title={t('detail.title')} backTo="/dossier" />
           <p>Chargement…</p>
         </div>
       </AppLayout>
@@ -188,7 +190,7 @@ export function DossierSignaturePage() {
     <AppLayout activeTab="accueil">
       <div className={styles.page}>
         <PageHeader
-          title="Mon dossier"
+          title={t('detail.title')}
           backTo={`/dossier?contractId=${contractId}`}
         />
 
@@ -197,8 +199,7 @@ export function DossierSignaturePage() {
         </div>
 
         <p className={styles.context}>
-          En tant que payeur, vous devez signer les CGVU pour valider la
-          souscription de {beneficiaryName.split(' ')[0] ?? 'le bénéficiaire'}.
+          {t('signature.context', { name: beneficiaryName.split(' ')[0] ?? 'le bénéficiaire' })}
         </p>
 
         <div className={styles.layout}>
@@ -207,7 +208,7 @@ export function DossierSignaturePage() {
               <CgvuPdfViewer
                 token={token}
                 contractId={contractId}
-                title="Conditions Générales de Vente et d'Utilisation"
+                title={t('signature.cgvuTitle')}
                 subtitle={`Version ${contract.cgvuVersion} — ${productLabel}`}
               />
             ) : null}
@@ -219,15 +220,15 @@ export function DossierSignaturePage() {
                 onChange={(e) => setAccepted(e.target.checked)}
                 className={styles.checkbox}
               />
-              <span>J&apos;ai lu et j&apos;accepte les CGVU</span>
+              <span>{t('signature.accept')}</span>
             </label>
 
             <div className={styles.yousignBanner}>
               <span className={styles.yousignBadge}>
                 <ShieldIcon />
-                Signature électronique sécurisée
+                {t('signature.secureSignature')}
               </span>
-              <span className={styles.yousignBrand}>via <strong>YouSign</strong></span>
+              <span className={styles.yousignBrand}>{t('signature.via')} <strong>YouSign</strong></span>
             </div>
 
             {signError ? (
@@ -246,17 +247,17 @@ export function DossierSignaturePage() {
 
           <div className={styles.sidebar}>
             <div className={styles.recap}>
-              <p className={styles.recapTitle}>Récapitulatif</p>
+              <p className={styles.recapTitle}>{t('signature.recap')}</p>
               <div className={styles.recapRow}>
-                <span className={styles.recapLabel}>Forfait</span>
+                <span className={styles.recapLabel}>{t('signature.plan')}</span>
                 <span className={styles.recapValue}>{productLabel}</span>
               </div>
               <div className={styles.recapRow}>
-                <span className={styles.recapLabel}>Bénéficiaire</span>
+                <span className={styles.recapLabel}>{t('signature.beneficiary')}</span>
                 <span className={styles.recapValue}>{beneficiaryName}</span>
               </div>
               <div className={styles.recapRow}>
-                <span className={styles.recapLabel}>Payeur</span>
+                <span className={styles.recapLabel}>{t('signature.payer')}</span>
                 <span className={styles.recapValue}>{payerName}</span>
               </div>
             </div>
@@ -270,7 +271,7 @@ export function DossierSignaturePage() {
             onClick={() => void handleSign()}
           >
             <ShieldIcon />
-            {signing ? 'Ouverture de YouSign…' : 'Signer les CGVU'}
+            {signing ? 'Ouverture de YouSign…' : t('signature.sign')}
           </Button>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { createRoot } from 'react-dom/client'
 import './styles/comutitres-tokens.css'
 import './styles/global.css'
 import './index.css'
+import './i18n'
 import App from './App.tsx'
 
 // NOTE: StrictMode is intentionally omitted. In dev it double-invokes mounts,

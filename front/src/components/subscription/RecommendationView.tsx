@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import styles from './RecommendationView.module.css'
 import type { SubscriptionRecommendation } from '../../domain/subscription-advisor/types'
 
@@ -33,12 +34,13 @@ export function RecommendationView({
   error,
   onContinue,
 }: RecommendationViewProps) {
+  const { t } = useTranslation('subscription')
   const alternative = recommendation.alternatives?.[0]
 
   return (
     <div className={styles.root}>
       <p className={styles.intro}>
-        Nous avons sélectionné le forfait le plus adapté au profil de {beneficiaryName}
+        {t('recommendationView.intro')} {beneficiaryName}
       </p>
 
       <div className={styles.cards}>
@@ -48,7 +50,7 @@ export function RecommendationView({
           <div className={styles.cardTop}>
             <div className={styles.cardLeft}>
               <span className={styles.recommendedBadge}>
-                ★ Recommandé pour {beneficiaryName}
+                {t('recommendationView.recommendedFor', { name: beneficiaryName })}
               </span>
               <h3 className={styles.productName}>{recommendation.productLabel}</h3>
               <p className={styles.price}>{recommendation.tariffLabel}</p>
@@ -72,7 +74,7 @@ export function RecommendationView({
         {alternative ? (
           <div className={[styles.card, styles.alternative].join(' ')}>
             <div className={styles.altHeader}>
-              <span className={styles.altBadge}>Alternative</span>
+              <span className={styles.altBadge}>{t('recommendationView.alternative')}</span>
             </div>
             <h3 className={styles.altName}>{alternative.productLabel}</h3>
             <p className={styles.altDesc}>{alternative.reason}</p>
@@ -85,7 +87,7 @@ export function RecommendationView({
       ) : null}
 
       <section className={styles.docsSection}>
-        <h4 className={styles.docsTitle}>Documents nécessaires</h4>
+        <h4 className={styles.docsTitle}>{t('recommendationView.documentsNeeded')}</h4>
         <div className={styles.docsList}>
           {recommendation.documentLabels.map((doc) => (
             <div key={doc} className={styles.docItem}>
@@ -105,7 +107,7 @@ export function RecommendationView({
           onClick={onContinue}
           disabled={submitting}
         >
-          {submitting ? 'Création du dossier…' : 'Continuer avec ce forfait'}
+          {submitting ? t('recommendationView.creating') : t('recommendationView.continueWith')}
         </button>
       </div>
     </div>

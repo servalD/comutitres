@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import styles from './UploadZone.module.css'
 
 interface UploadZoneProps {
@@ -20,13 +21,14 @@ function CameraIcon() {
 }
 
 export function UploadZone({ onClick }: UploadZoneProps) {
+  const { t } = useTranslation('common')
   return (
     <button type="button" className={styles.zone} onClick={onClick}>
       <span className={styles.icon} aria-hidden="true">
         <CameraIcon />
       </span>
-      <span className={styles.title}>Déposer un document</span>
-      <span className={styles.hint}>Formats acceptés : PDF, JPG, PNG — 10 Mo max</span>
+      <span className={styles.title}>{t('upload.title')}</span>
+      <span className={styles.hint}>{t('upload.hint')}</span>
     </button>
   )
 }

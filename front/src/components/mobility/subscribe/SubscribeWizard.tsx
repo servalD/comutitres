@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import type { MobilityIdentity } from '../../../domain/types/mobility'
 import {
   buildRecommendation,
@@ -28,6 +29,7 @@ interface SubscribeWizardProps {
 }
 
 export function SubscribeWizard({ identity, onCancel }: SubscribeWizardProps) {
+  const { t } = useTranslation('mobility')
   const context = useMemo(
     () =>
       createSubscriptionContext({
@@ -59,13 +61,13 @@ export function SubscribeWizard({ identity, onCancel }: SubscribeWizardProps) {
     if (step.questions.length > 0) return null
     if (step.canRecommend) return null
     if (answers.isEnrolled === false) {
-      return 'Sans scolarité ou inscription, aucun forfait Imagine R ne correspond à cette situation.'
+      return t('wizard.notEnrolledError')
     }
     try {
       buildRecommendation(context, answers)
       return null
     } catch (err) {
-      return err instanceof Error ? err.message : 'Situation non couverte.'
+      return err instanceof Error ? err.message : t('wizard.notCovered')
     }
   }, [context, answers, step])
 
@@ -104,7 +106,7 @@ export function SubscribeWizard({ identity, onCancel }: SubscribeWizardProps) {
 
       setDone(true)
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Souscription impossible')
+      setError(err instanceof ApiError ? err.message : t('wizard.subscribeError'))
     } finally {
       setSubmitting(false)
     }
@@ -114,10 +116,9 @@ export function SubscribeWizard({ identity, onCancel }: SubscribeWizardProps) {
     return (
       <Card className={styles.subscribe}>
         <p className={styles.success}>
-          <span aria-hidden="true">✅</span> Dossier créé — déposez les justificatifs dans
-          l’onglet Documents.
+          <span aria-hidden="true">✅</span> {t('wizard.success')}
         </p>
-        <Button onClick={onCancel}>Retour à la fiche</Button>
+        <Button onClick={onCancel}>{t('subscribe.backToDetail')}</Button>
       </Card>
     )
   }
@@ -127,9 +128,12 @@ export function SubscribeWizard({ identity, onCancel }: SubscribeWizardProps) {
   return (
     <div className={styles.subscribe}>
       <p className={styles.intro}>
-        Nous vous guidons vers le forfait adapté à <strong>{identity.firstName}</strong>{' '}
-        ({identity.calculatedAge} ans). Répondez aux questions — pas besoin de connaître le
-        nom des passes à l’avance.
+        <Trans
+          i18nKey="wizard.intro"
+          ns="mobility"
+          values={{ name: identity.firstName, age: identity.calculatedAge }}
+          components={{ strong: <strong /> }}
+        />
       </p>
 
       {currentQuestion ? (
@@ -171,11 +175,11 @@ export function SubscribeWizard({ identity, onCancel }: SubscribeWizardProps) {
       <div className={styles.actions}>
         {recommendation ? (
           <Button onClick={handleSubscribe} disabled={submitting}>
-            {submitting ? 'Création…' : 'Confirmer et ouvrir le dossier'}
+            {submitting ? t('wizard.creating') : t('wizard.confirmOpen')}
           </Button>
         ) : null}
         <Button variant="ghost" onClick={onCancel}>
-          Annuler
+          {t('common:actions.cancel')}
         </Button>
       </div>
     </div>

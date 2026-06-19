@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { contractsApi } from '../api/contracts'
 import { SubscriptionWizardShell } from '../components/layout/SubscriptionWizardShell'
 import { RecommendationView } from '../components/subscription/RecommendationView'
@@ -66,15 +67,16 @@ function beneficiaryIcon(person: SubscriptionBeneficiaryView) {
   return <ChildIcon />
 }
 
-function beneficiaryLabel(person: SubscriptionBeneficiaryView) {
-  const fullName = `${person.firstName} ${person.lastName}`
-  return person.isSelf ? `${fullName} (Vous)` : fullName
-}
-
 export function NouvelleSouscriptionPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('subscription')
   const { token, user } = useAuth()
   const { beneficiaries, loading, error } = useSubscriptionBeneficiaries()
+
+  const beneficiaryLabel = (person: SubscriptionBeneficiaryView) => {
+    const fullName = `${person.firstName} ${person.lastName}`
+    return person.isSelf ? `${fullName} ${t('nouvelle.youSuffix')}` : fullName
+  }
 
   const defaultBeneficiary = beneficiaries.find((b) => b.isSelf) ?? beneficiaries[0]
   const ownerBeneficiary = beneficiaries.find((b) => b.isSelf) ?? defaultBeneficiary
@@ -184,19 +186,19 @@ export function NouvelleSouscriptionPage() {
   const getStepTitle = () => {
     switch (step) {
       case 1:
-        return 'Pour qui souhaitez-vous souscrire ?'
+        return t('nouvelle.step1Title')
       case 2:
-        return 'Informations du bénéficiaire'
+        return t('nouvelle.step2Title')
       case 3:
-        return 'Quel est votre usage principal ?'
+        return t('nouvelle.step3Title')
       case 4: {
         const currentQuestion = advisorStep?.questions[0]
         if (currentQuestion) return currentQuestion.label
-        if (advisorStep?.canRecommend) return 'Situation complète'
-        return 'Votre situation'
+        if (advisorStep?.canRecommend) return t('nouvelle.step4Title')
+        return t('nouvelle.step4Title')
       }
       case 5:
-        return 'Notre recommandation ✦'
+        return t('nouvelle.step5Title')
       default:
         return ''
     }
@@ -205,12 +207,12 @@ export function NouvelleSouscriptionPage() {
   const getStepSubtitle = () => {
     switch (step) {
       case 3:
-        return 'Votre réponse nous aide à vous proposer les titres les plus adaptés à vos besoins.'
+        return t('nouvelle.step4Subtitle')
       case 4: {
         const currentQuestion = advisorStep?.questions[0]
         if (currentQuestion?.hint) return currentQuestion.hint
         if (advisorStep?.canRecommend) {
-          return 'Vous pouvez passer à l’étape suivante pour voir notre recommandation.'
+          return 'Vous pouvez passer à l\u2019étape suivante pour voir notre recommandation.'
         }
         return 'Répondez à chaque question pour affiner le forfait proposé.'
       }
@@ -228,11 +230,11 @@ export function NouvelleSouscriptionPage() {
           <>
             {error && (
               <p className={styles.loadError} role="status">
-                {error} Affichage de démonstration.
+                {error} {t('foyer:espace.demoFallback')}
               </p>
             )}
             {loading ? (
-              <p className={styles.loadingHint}>Chargement de votre foyer…</p>
+              <p className={styles.loadingHint}>{t('nouvelle.loadingHousehold')}</p>
             ) : (
               <div className={styles.selectionGrid}>
                 {beneficiaries.map((person) => (
@@ -245,7 +247,7 @@ export function NouvelleSouscriptionPage() {
                   />
                 ))}
                 <SelectionCard
-                  label="Ajouter une personne"
+                  label={t('foyer:foyer.addPerson')}
                   icon={<AddPersonIcon />}
                   selected={false}
                   onClick={() =>
@@ -254,10 +256,7 @@ export function NouvelleSouscriptionPage() {
                 />
               </div>
             )}
-            <InfoBanner>
-              Le titulaire du compte connecté sera automatiquement payeur et
-              responsable légal si le bénéficiaire est mineur.
-            </InfoBanner>
+            <InfoBanner>{t('nouvelle.minorNotice')}</InfoBanner>
           </>
         )
 
@@ -266,7 +265,7 @@ export function NouvelleSouscriptionPage() {
           <Card key={selectedBeneficiary?.id} className={styles.formCard}>
             <div className={styles.fieldGrid}>
               <label className={styles.field}>
-                <span>Prénom</span>
+                <span>{t('nouvelle.firstName')}</span>
                 <input
                   type="text"
                   defaultValue={selectedBeneficiary?.firstName ?? ''}
@@ -274,7 +273,7 @@ export function NouvelleSouscriptionPage() {
                 />
               </label>
               <label className={styles.field}>
-                <span>Nom</span>
+                <span>{t('nouvelle.lastName')}</span>
                 <input
                   type="text"
                   defaultValue={selectedBeneficiary?.lastName ?? ''}
@@ -282,7 +281,7 @@ export function NouvelleSouscriptionPage() {
                 />
               </label>
               <label className={styles.field}>
-                <span>Date de naissance</span>
+                <span>{t('nouvelle.birthDate')}</span>
                 <input
                   type="date"
                   defaultValue={selectedBeneficiary?.birthDate ?? ''}
@@ -290,7 +289,7 @@ export function NouvelleSouscriptionPage() {
                 />
               </label>
               <label className={styles.field}>
-                <span>Email de contact</span>
+                <span>{t('nouvelle.contactEmail')}</span>
                 <input type="email" defaultValue={contactEmail} readOnly />
               </label>
             </div>
@@ -320,7 +319,7 @@ export function NouvelleSouscriptionPage() {
           />
         ) : (
           <p className={styles.loadingHint}>
-            Impossible de calculer une recommandation. Revenez à l’étape précédente.
+            Impossible de calculer une recommandation. Revenez à l&apos;étape précédente.
           </p>
         )
 
@@ -342,7 +341,7 @@ export function NouvelleSouscriptionPage() {
           <div className={styles.stepHeader}>
             {step < TOTAL_STEPS && (
               <p className={styles.stepLabel}>
-                Étape {step} sur {TOTAL_STEPS}
+                {t('common:stepOf', { step, total: TOTAL_STEPS })}
               </p>
             )}
             <h2
@@ -370,13 +369,13 @@ export function NouvelleSouscriptionPage() {
                 (step === 4 && !canContinueStep4)
               }
             >
-              Continuer
+              {t('common:actions.continue')}
             </Button>
             {step > 1 && (
               <button type="button" className={styles.backLink} onClick={goBack}>
                 {step === 4 && advisorHistory.length > 0
                   ? 'Question précédente'
-                  : 'Retour'}
+                  : t('common:actions.back')}
               </button>
             )}
           </footer>

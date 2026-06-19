@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import styles from './DossierSubStepper.module.css'
 
 interface Step {
@@ -19,8 +20,9 @@ function CheckSmallIcon() {
 }
 
 export function DossierSubStepper({ steps, currentStep }: DossierSubStepperProps) {
+  const { t } = useTranslation('dossier')
   return (
-    <nav className={styles.stepper} aria-label="Étapes du dossier">
+    <nav className={styles.stepper} aria-label={t('subStepperAria')}>
       <ol className={styles.list}>
         {steps.map((step, index) => {
           const done = step.id < currentStep

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import styles from './PageHeader.module.css'
 
 interface PageHeaderProps {
@@ -22,10 +23,11 @@ function BackIcon() {
 }
 
 export function PageHeader({ title, backTo = '/', subtitle }: PageHeaderProps) {
+  const { t } = useTranslation('common')
   return (
     <header className={styles.header}>
       <div className={styles.topRow}>
-        <Link to={backTo} className={styles.backBtn} aria-label="Retour">
+        <Link to={backTo} className={styles.backBtn} aria-label={t('actions.back')}>
           <BackIcon />
         </Link>
         <h1 className={styles.title}>{title}</h1>

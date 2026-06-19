@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { AppLayout } from '../components/layout/AppLayout'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Avatar } from '../components/ui/Avatar'
@@ -15,13 +16,6 @@ import { usePersonDetail } from '../hooks/usePersonDetail'
 import styles from './FichePersonnePage.module.css'
 
 type TabId = 'resume' | 'titres' | 'documents' | 'historique'
-
-const TABS: Array<{ id: TabId; label: string }> = [
-  { id: 'resume', label: 'Résumé' },
-  { id: 'titres', label: 'Titres' },
-  { id: 'documents', label: 'Documents' },
-  { id: 'historique', label: 'Historique' },
-]
 
 const MOCK_SECTION_LABELS: Record<string, string> = {
   profile: 'profil',
@@ -123,7 +117,7 @@ function DemoBanner({
   if (source === 'mock') {
     return (
       <p className={styles.demoBanner} role="status">
-        {error ?? 'Données de démonstration — fiche non branchée à l’API mobilité.'}
+        {error ?? 'Données de démonstration — fiche non branchée à l&apos;API mobilité.'}
       </p>
     )
   }
@@ -161,8 +155,16 @@ function documentStatusClass(status: string) {
 
 export function FichePersonnePage() {
   const { id } = useParams<{ id: string }>()
+  const { t } = useTranslation('foyer')
   const [activeTab, setActiveTab] = useState<TabId>('resume')
   const { person, source, mockSections, loading, error } = usePersonDetail(id)
+
+  const TABS: { id: TabId; label: string }[] = [
+    { id: 'resume', label: t('fiche.tabs.resume') },
+    { id: 'titres', label: t('fiche.tabs.titres') },
+    { id: 'documents', label: t('fiche.tabs.documents') },
+    { id: 'historique', label: t('fiche.tabs.historique') },
+  ]
 
   const mockScenario = useMemo(
     () => resolvePersonMockScenario({ firstName: person.firstName, age: person.age }),
@@ -175,7 +177,7 @@ export function FichePersonnePage() {
   return (
     <AppLayout activeTab="foyer">
       <div className={styles.page}>
-        <PageHeader title="Fiche personne" backTo="/foyer" />
+        <PageHeader title={t('fiche.title')} backTo="/foyer" />
 
         <DemoBanner
           source={source}
@@ -199,12 +201,12 @@ export function FichePersonnePage() {
                 <h1 className={styles.profileName}>
                   {person.firstName} {person.lastName}
                 </h1>
-                <p className={styles.profileAge}>{person.age} ans</p>
+                <p className={styles.profileAge}>{t('ageYears', { count: person.age })}</p>
               </div>
               <span className={styles.profileBadge}>{person.profile}</span>
             </div>
 
-            <nav className={styles.tabs} aria-label="Onglets fiche personne">
+            <nav className={styles.tabs} aria-label={t('fiche.tabsAria')}>
               {TABS.map((tab) => (
                 <button
                   key={tab.id}
@@ -222,12 +224,12 @@ export function FichePersonnePage() {
               <div className={styles.resumeGrid}>
                 <div className={styles.resumeLeft}>
                   <Card className={styles.rolesCard}>
-                    <h2 className={styles.cardTitle}>Rôles</h2>
+                    <h2 className={styles.cardTitle}>{t('fiche.roles')}</h2>
                     <ul className={styles.roleList}>
                       <li className={styles.roleRow}>
                         <span className={styles.roleIcon} aria-hidden="true"><PersonIcon /></span>
                         <div className={styles.roleBody}>
-                          <span className={styles.roleLabel}>Porteur</span>
+                          <span className={styles.roleLabel}>{t('fiche.holder')}</span>
                           <span className={styles.roleValue}>{person.roles.porteurLabel}</span>
                         </div>
                         <span className={styles.roleChevron} aria-hidden="true"><ChevronRight /></span>
@@ -235,11 +237,11 @@ export function FichePersonnePage() {
                       <li className={styles.roleRow}>
                         <span className={styles.roleIcon} aria-hidden="true"><CardIcon /></span>
                         <div className={styles.roleBody}>
-                          <span className={styles.roleLabel}>Payeur</span>
+                          <span className={styles.roleLabel}>{t('fiche.payer')}</span>
                           <span className={styles.roleValue}>
                             {person.roles.payeur.name}
                             {person.roles.payeur.isSelf && (
-                              <span className={styles.youBadge}>vous</span>
+                              <span className={styles.youBadge}>{t('fiche.youLower')}</span>
                             )}
                           </span>
                         </div>
@@ -248,7 +250,7 @@ export function FichePersonnePage() {
                       <li className={styles.roleRow}>
                         <span className={styles.roleIcon} aria-hidden="true"><ShieldIcon /></span>
                         <div className={styles.roleBody}>
-                          <span className={styles.roleLabel}>Responsable légal</span>
+                          <span className={styles.roleLabel}>{t('fiche.legalGuardian')}</span>
                           <span className={styles.roleValue}>
                             {person.roles.responsableLegal.name}
                           </span>
@@ -302,7 +304,7 @@ export function FichePersonnePage() {
                   <Link to="/souscription/nouvelle">
                     <Button fullWidth className={styles.ctaBtn}>
                       <span aria-hidden="true"><PlusIcon /></span>
-                      Souscrire un titre
+                      {t('fiche.subscribe')}
                     </Button>
                   </Link>
                 </div>

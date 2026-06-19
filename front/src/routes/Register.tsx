@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Trans, useTranslation } from 'react-i18next'
 import { PublicAppFrame } from '../components/layout/PublicAppFrame'
 import { authApi } from '../api/auth'
 import { useAuth } from '../contexts/AuthContext'
@@ -75,6 +76,7 @@ function EyeIcon({ visible }: { visible: boolean }) {
 
 export default function Register({ zone = 'mobility' }: RegisterProps) {
   const { login } = useAuth()
+  const { t } = useTranslation('auth')
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from
@@ -95,6 +97,13 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  const title =
+    step === 'form'
+      ? t('register.title')
+      : step === 'match'
+        ? 'Profil mobilité trouvé'
+        : 'Vérification par e-mail'
+
   async function finishAuth(accessToken: string) {
     await login(accessToken)
     const target = consumePostAuthRedirect(resolveAfterAuth(zone, from))
@@ -103,11 +112,11 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
 
   function validatePasswords(): boolean {
     if (password !== confirm) {
-      setError('Les mots de passe ne correspondent pas.')
+      setError(t('register.passwordMismatch'))
       return false
     }
     if (password.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caractères.')
+      setError(t('register.passwordTooShort'))
       return false
     }
     return true
@@ -136,7 +145,7 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
       })
       await finishAuth(accessToken)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue.')
+      setError(err instanceof Error ? err.message : t('errors.generic'))
     } finally {
       setLoading(false)
     }
@@ -185,13 +194,6 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
     }
   }
 
-  const title =
-    step === 'form'
-      ? 'Créer un compte'
-      : step === 'match'
-        ? 'Profil mobilité trouvé'
-        : 'Vérification par e-mail'
-
   return (
     <PublicAppFrame variant="white">
       <main className={ls.page}>
@@ -216,28 +218,28 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
             <form onSubmit={handleFormSubmit} className={ls.form} noValidate>
               <div className={styles.row}>
                 <div className={ls.field}>
-                  <label htmlFor="firstName" className={ls.label}>Prénom</label>
+                  <label htmlFor="firstName" className={ls.label}>{t('register.firstName')}</label>
                   <div className={ls.inputWrap}>
                     <span className={ls.inputIcon}><UserIcon /></span>
                     <input
                       id="firstName"
                       required
                       className={ls.input}
-                      placeholder="Jean"
+                      placeholder={t('register.firstNamePlaceholder')}
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                     />
                   </div>
                 </div>
                 <div className={ls.field}>
-                  <label htmlFor="lastName" className={ls.label}>Nom</label>
+                  <label htmlFor="lastName" className={ls.label}>{t('register.lastName')}</label>
                   <div className={ls.inputWrap}>
                     <span className={ls.inputIcon}><UserIcon /></span>
                     <input
                       id="lastName"
                       required
                       className={ls.input}
-                      placeholder="Dupont"
+                      placeholder={t('register.lastNamePlaceholder')}
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                     />
@@ -246,7 +248,7 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
               </div>
 
               <div className={ls.field}>
-                <label htmlFor="birthDate" className={ls.label}>Date de naissance</label>
+                <label htmlFor="birthDate" className={ls.label}>{t('register.birthDate')}</label>
                 <div className={ls.inputWrap}>
                   <span className={ls.inputIcon}><CalendarIcon /></span>
                   <input
@@ -261,7 +263,7 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
               </div>
 
               <div className={ls.field}>
-                <label htmlFor="email" className={ls.label}>Adresse e-mail</label>
+                <label htmlFor="email" className={ls.label}>{t('login.email')}</label>
                 <div className={ls.inputWrap}>
                   <span className={ls.inputIcon}><MailIcon /></span>
                   <input
@@ -270,7 +272,7 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
                     autoComplete="email"
                     required
                     className={ls.input}
-                    placeholder="exemple@email.fr"
+                    placeholder={t('login.emailPlaceholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -278,7 +280,7 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
               </div>
 
               <div className={ls.field}>
-                <label htmlFor="password" className={ls.label}>Mot de passe</label>
+                <label htmlFor="password" className={ls.label}>{t('login.password')}</label>
                 <div className={ls.inputWrap}>
                   <span className={ls.inputIcon}><LockIcon /></span>
                   <input
@@ -288,7 +290,7 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
                     required
                     minLength={8}
                     className={ls.input}
-                    placeholder="8 caractères minimum"
+                    placeholder={t('register.passwordPlaceholder')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -296,7 +298,7 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
                     type="button"
                     className={ls.eyeBtn}
                     onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? 'Masquer' : 'Afficher'}
+                    aria-label={showPassword ? t('register.hide') : t('register.show')}
                   >
                     <EyeIcon visible={showPassword} />
                   </button>
@@ -304,7 +306,7 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
               </div>
 
               <div className={ls.field}>
-                <label htmlFor="confirm" className={ls.label}>Confirmer le mot de passe</label>
+                <label htmlFor="confirm" className={ls.label}>{t('register.confirmPassword')}</label>
                 <div className={ls.inputWrap}>
                   <span className={ls.inputIcon}><LockIcon /></span>
                   <input
@@ -321,7 +323,7 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
                     type="button"
                     className={ls.eyeBtn}
                     onClick={() => setShowConfirm((v) => !v)}
-                    aria-label={showConfirm ? 'Masquer' : 'Afficher'}
+                    aria-label={showConfirm ? t('register.hide') : t('register.show')}
                   >
                     <EyeIcon visible={showConfirm} />
                   </button>
@@ -330,7 +332,7 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
 
               <button type="submit" className={ls.btnPrimary} disabled={loading}>
                 {loading && <span className={ls.spinner} aria-hidden="true" />}
-                {loading ? 'Vérification…' : 'Créer mon compte'}
+                {loading ? t('register.creating') : t('register.submit')}
               </button>
             </form>
           )}
@@ -412,15 +414,25 @@ export default function Register({ zone = 'mobility' }: RegisterProps) {
 
           <p className={ls.createRow}>
             <Link to={loginForZone(zone)} className={ls.createLink}>
-              Déjà un compte ? Se connecter <span aria-hidden="true">›</span>
+              {t('register.haveAccount')} <span aria-hidden="true">›</span>
             </Link>
           </p>
 
           <p className={ls.legal}>
-            En continuant vous acceptez les{' '}
-            <a href="https://www.comutitres.fr/cgu" className={ls.legalLink} target="_blank" rel="noopener noreferrer">
-              CGU
-            </a>
+            <Trans
+              i18nKey="login.legal"
+              ns="auth"
+              components={{
+                cgu: (
+                  <a
+                    href="https://www.comutitres.fr/cgu"
+                    className={ls.legalLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                ),
+              }}
+            />
           </p>
         </div>
       </main>

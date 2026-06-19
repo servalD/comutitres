@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { contractsApi, type ContractResponse } from '../../api/contracts'
 import { AppLayout } from '../../components/layout/AppLayout'
 import { PageHeader } from '../../components/layout/PageHeader'
@@ -32,6 +33,7 @@ function LockIcon() {
 
 export function DossierPaiementPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('dossier')
   const [searchParams] = useSearchParams()
   const contractId = searchParams.get('contractId') ?? ''
   const { token } = useAuth()
@@ -89,7 +91,7 @@ export function DossierPaiementPage() {
       }
     } catch (err) {
       setPayError(
-        err instanceof Error ? err.message : 'Le paiement n’a pas pu être confirmé.',
+        err instanceof Error ? err.message : 'Le paiement n\u2019a pas pu être confirmé.',
       )
       setPaying(false)
     }
@@ -106,7 +108,7 @@ export function DossierPaiementPage() {
     return (
       <AppLayout activeTab="accueil">
         <div className={styles.page}>
-          <PageHeader title="Paiement" backTo="/dossier" />
+          <PageHeader title={t('paiement.title')} backTo="/dossier" />
           <p>Chargement…</p>
         </div>
       </AppLayout>
@@ -117,8 +119,8 @@ export function DossierPaiementPage() {
     <AppLayout activeTab="accueil">
       <div className={styles.page}>
         <PageHeader
-          title="Paiement"
-          subtitle="Étape 4 sur 4"
+          title={t('paiement.title')}
+          subtitle={t('common:stepOf', { step: 4, total: 4 })}
           backTo={`/dossier/signature?contractId=${contractId}`}
         />
 
@@ -129,7 +131,7 @@ export function DossierPaiementPage() {
         <div className={styles.layout}>
           <div className={styles.main}>
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Choisissez votre mode de paiement</h2>
+              <h2 className={styles.sectionTitle}>{t('paiement.choosePayMode')}</h2>
               <div className={styles.payModes}>
                 <label className={[styles.payMode, payMode === 'quarterly' ? styles.payModeActive : ''].filter(Boolean).join(' ')}>
                   <input
@@ -142,10 +144,10 @@ export function DossierPaiementPage() {
                   />
                   <div className={styles.payModeBody}>
                     <div className={styles.payModeTop}>
-                      <span className={styles.payModeLabel}>Paiement en 4 fois</span>
-                      <span className={styles.payModeBadge}>4 prélèvements de 96,00 €</span>
+                      <span className={styles.payModeLabel}>{t('paiement.fourTimes')}</span>
+                      <span className={styles.payModeBadge}>{t('paiement.fourInstalments')}</span>
                     </div>
-                    <p className={styles.payModeDesc}>4 prélèvements de 96,00 €</p>
+                    <p className={styles.payModeDesc}>{t('paiement.fourInstalments')}</p>
                   </div>
                 </label>
 
@@ -159,18 +161,18 @@ export function DossierPaiementPage() {
                     className={styles.radioInput}
                   />
                   <div className={styles.payModeBody}>
-                    <span className={styles.payModeLabel}>Prélèvement mensuel</span>
-                    <p className={styles.payModeDesc}>12 prélèvements de 32,00 €</p>
+                    <span className={styles.payModeLabel}>{t('paiement.monthly')}</span>
+                    <p className={styles.payModeDesc}>{t('paiement.twelveInstalments')}</p>
                   </div>
                 </label>
               </div>
             </section>
 
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Informations de paiement</h2>
+              <h2 className={styles.sectionTitle}>{t('paiement.paymentInfo')}</h2>
               <div className={styles.cardForm}>
                 <div className={styles.formField}>
-                  <label className={styles.fieldLabel} htmlFor="cardNumber">Numéro de carte</label>
+                  <label className={styles.fieldLabel} htmlFor="cardNumber">{t('paiement.cardNumber')}</label>
                   <div className={styles.inputWrap}>
                     <span className={styles.inputIcon} aria-hidden="true"><CardPayIcon /></span>
                     <input
@@ -184,7 +186,7 @@ export function DossierPaiementPage() {
                 </div>
                 <div className={styles.formRow}>
                   <div className={styles.formField}>
-                    <label className={styles.fieldLabel} htmlFor="expiry">Date d'expiration</label>
+                    <label className={styles.fieldLabel} htmlFor="expiry">{t('paiement.expiry')}</label>
                     <input id="expiry" type="text" className={styles.input} placeholder="MM / AA" maxLength={7} />
                   </div>
                   <div className={styles.formField}>
@@ -196,7 +198,7 @@ export function DossierPaiementPage() {
 
               <div className={styles.secureBadge}>
                 <LockIcon />
-                <span>Paiement sécurisé (simulation)</span>
+                <span>{t('paiement.secure')}</span>
               </div>
             </section>
           </div>
@@ -214,10 +216,10 @@ export function DossierPaiementPage() {
                 </div>
               </div>
               <div className={styles.recapTotal}>
-                <span className={styles.recapTotalLabel}>Total annuel</span>
+                <span className={styles.recapTotalLabel}>{t('paiement.annualTotal')}</span>
                 <span className={styles.recapTotalAmount}>384,00 €</span>
               </div>
-              <p className={styles.recapNote}>Le payeur sera débité chaque mois</p>
+              <p className={styles.recapNote}>{t('paiement.payerNote')}</p>
             </div>
           </aside>
         </div>
@@ -230,7 +232,7 @@ export function DossierPaiementPage() {
           ) : null}
           <Button fullWidth disabled={paying || !token || !contractId} onClick={() => void handlePay()}>
             <LockIcon />
-            {paying ? 'Confirmation…' : 'Payer 384 €'}
+            {paying ? 'Confirmation…' : t('paiement.pay', { amount: '384 €' })}
           </Button>
         </div>
       </div>

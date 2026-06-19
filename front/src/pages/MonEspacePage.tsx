@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Trans, useTranslation } from 'react-i18next'
 import { AppLayout } from '../components/layout/AppLayout'
 import { Avatar } from '../components/ui/Avatar'
 import { Button } from '../components/ui/Button'
@@ -67,6 +68,7 @@ function statusClass(status: string) {
 }
 
 export function MonEspacePage() {
+  const { t } = useTranslation('foyer')
   const {
     greetingFirstName,
     members,
@@ -97,22 +99,26 @@ export function MonEspacePage() {
       <div className={styles.page}>
         <header className={styles.hero}>
           <div className={styles.heroContent}>
-            <p className={styles.heroEyebrow}>Espace client</p>
-            <h1 className={styles.title}>Mon espace</h1>
+            <p className={styles.heroEyebrow}>{t('common:brand.tagline')}</p>
+            <h1 className={styles.title}>{t('espace.title')}</h1>
             <p className={styles.hello}>
-              Bonjour, <strong>{greetingFirstName}</strong> — retrouvez ici vos
-              démarches et les personnes de votre foyer.
+              <Trans
+                i18nKey="espace.hello"
+                ns="foyer"
+                values={{ name: greetingFirstName }}
+                components={{ strong: <strong /> }}
+              />
             </p>
             {error && (
               <p className={styles.loadError} role="status">
-                {error} Affichage de démonstration.
+                {error} {t('espace.demoFallback')}
               </p>
             )}
           </div>
           <Link to="/souscription/nouvelle" className={styles.heroCta}>
             <Button className={styles.heroCtaBtn}>
               <PlusIcon />
-              Nouvelle souscription
+              {t('common:newSubscription')}
             </Button>
           </Link>
         </header>
@@ -140,7 +146,7 @@ export function MonEspacePage() {
         )}
 
         <div className={styles.grid}>
-          <section className={styles.primary} aria-label="Dossier en cours">
+          <section className={styles.primary} aria-label={t('espace.dossierInProgress')}>
             {dossiers.length > 0 && (
               <SubscriptionDossierActionAlert
                 needsJustificatifs={needsJustificatifs}
@@ -159,28 +165,28 @@ export function MonEspacePage() {
                 showSyncNote={dossierSource === 'api'}
               />
             ) : (
-              <SubscriptionDossierEmptyCard title="Dossier en cours" />
+              <SubscriptionDossierEmptyCard title={t('espace.dossierInProgress')} />
             )}
           </section>
 
-          <aside className={styles.sidebar} aria-label="Mon foyer">
+          <aside className={styles.sidebar} aria-label={t('common:tabs.foyer')}>
             <Card className={styles.foyerCard}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardTitleRow}>
                   <span className={styles.iconBlue} aria-hidden="true">
                     <FoyerIcon />
                   </span>
-                  <h2 className={styles.cardTitle}>Mon foyer</h2>
+                  <h2 className={styles.cardTitle}>{t('common:tabs.foyer')}</h2>
                 </div>
                 <Link to="/foyer" className={styles.voirTout}>
-                  Voir tout
+                  {t('espace.seeAll')}
                   <ChevronRight />
                 </Link>
               </div>
 
               <ul className={styles.memberList}>
                 {loading ? (
-                  <li className={styles.memberLoading}>Chargement du foyer…</li>
+                  <li className={styles.memberLoading}>{t('espace.loadingHousehold')}</li>
                 ) : (
                   members.map((member) => (
                   <li key={member.id} className={styles.memberRow}>
@@ -197,12 +203,12 @@ export function MonEspacePage() {
                             {member.firstName} {member.lastName}
                           </span>
                           {member.isSelf && (
-                            <span className={styles.youBadge}>Vous</span>
+                            <span className={styles.youBadge}>{t('espace.you')}</span>
                           )}
                         </div>
                         <div className={styles.memberTags}>
                           <span className={styles.tag}>{member.role}</span>
-                          <span className={styles.tag}>{member.age} ans</span>
+                          <span className={styles.tag}>{t('ageYears', { count: member.age })}</span>
                         </div>
                         <span
                           className={[styles.status, statusClass(member.status)].join(' ')}
@@ -217,10 +223,7 @@ export function MonEspacePage() {
                 )}
               </ul>
 
-              <p className={styles.foyerHint}>
-                Gérez les personnes rattachées à votre compte et lancez une
-                souscription pour chacune d&apos;elles.
-              </p>
+              <p className={styles.foyerHint}>{t('espace.foyerHint')}</p>
             </Card>
           </aside>
         </div>
@@ -229,7 +232,7 @@ export function MonEspacePage() {
           <Link to="/souscription/nouvelle" className={styles.ctaLink}>
             <Button fullWidth className={styles.ctaButton}>
               <PlusIcon />
-              Nouvelle souscription
+              {t('common:newSubscription')}
             </Button>
           </Link>
         </div>

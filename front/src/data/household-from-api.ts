@@ -1,9 +1,6 @@
 import type { CharacterId } from '../components/ui/Avatar'
-import {
-  productLabels,
-  profileLabels,
-  relationshipLabels,
-} from '../constants/labels'
+import i18n from '../i18n'
+import { labelFor } from '../constants/labels'
 import type {
   Contract,
   ContractStatus,
@@ -58,28 +55,31 @@ export function mapIdentityRoleTag(
   identity: MobilityIdentityWithRelationships,
 ): string {
   if (hasActiveRelationship(identity, 'payer')) {
-    return relationshipLabels.payer
+    return labelFor.relationship('payer')
   }
   if (identity.currentProfile === 'junior') {
-    return profileLabels.junior
+    return labelFor.profile('junior')
   }
-  return profileLabels[identity.currentProfile]
+  return labelFor.profile(identity.currentProfile)
 }
 
 export function mapContractsToStatusLabel(contracts: Contract[]): string {
   const active = contracts.find((c) => c.status === 'active')
   if (active) {
-    return `${productLabels[active.productType]} actif`
+    return i18n.t('household.activeSubscription', {
+      ns: 'foyer',
+      product: labelFor.product(active.productType),
+    })
   }
 
   const pending = contracts.find((c) =>
     PENDING_CONTRACT_STATUSES.includes(c.status),
   )
   if (pending) {
-    return 'Dossier en cours'
+    return i18n.t('household.inProgress', { ns: 'foyer' })
   }
 
-  return 'Aucun abonnement'
+  return i18n.t('household.noSubscription', { ns: 'foyer' })
 }
 
 export function mapIdentityToMember(
@@ -135,7 +135,7 @@ export function mockSubscriptionDossierViews(): SubscriptionDossierView[] {
     currentStep: MOCK_DOSSIER.currentStep,
     totalSteps: MOCK_DOSSIER.totalSteps,
     steps: MOCK_DOSSIER.steps,
-    stepHint: '1/3 documents déposés — complétez vos justificatifs.',
+    stepHint: i18n.t('stepHints.2', { ns: 'dossier' }),
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     documentsDeposed: 1,
     documentsRequired: 3,
@@ -160,7 +160,7 @@ export function mockSubscriptionDossierViews(): SubscriptionDossierView[] {
     currentStep: MOCK_DOSSIER_MARIE.currentStep,
     totalSteps: MOCK_DOSSIER.totalSteps,
     steps: MOCK_DOSSIER.steps,
-    stepHint: 'Signez les CGVU et finalisez le paiement.',
+    stepHint: i18n.t('stepHints.4', { ns: 'dossier' }),
     createdAt: new Date().toISOString(),
     documentsDeposed: MOCK_DOSSIER_MARIE.documentsDeposed,
     documentsRequired: MOCK_DOSSIER_MARIE.documentsRequired,
@@ -287,7 +287,7 @@ function contractToTitreStatusType(status: ContractStatus): PersonTitreStatusTyp
 
 export function mapContractToPersonTitre(contract: Contract): PersonTitreView {
   const statusType = contractToTitreStatusType(contract.status)
-  const label = productLabels[contract.productType]
+  const label = labelFor.product(contract.productType)
   const pendingLabel =
     contract.status === 'pending_document'
       ? 'Validation par nos équipes'
@@ -400,7 +400,7 @@ export function mapIdentityToPersonDetail(
     firstName: identity.firstName,
     lastName: identity.lastName,
     age: identity.calculatedAge,
-    profile: profileLabels[identity.currentProfile],
+    profile: labelFor.profile(identity.currentProfile),
     character: self ? 'marie' : identity.calculatedAge < 18 ? 'lea' : undefined,
     roles: {
       porteurLabel: identity.firstName,

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { contractsApi, type ContractResponse } from '../../api/contracts'
 import { AppLayout } from '../../components/layout/AppLayout'
 import { PageHeader } from '../../components/layout/PageHeader'
@@ -13,8 +14,8 @@ import styles from './DossierValidationPage.module.css'
 const DOSSIER_STEPS = [
   { id: 1, label: 'Informations' },
   { id: 2, label: 'Justificatifs' },
-  { id: 3, label: 'Photo' },
-  { id: 4, label: 'Récapitulatif' },
+  { id: 3, label: 'Signature' },
+  { id: 4, label: 'Paiement' },
   { id: 5, label: 'Validation' },
 ]
 
@@ -45,6 +46,7 @@ function CheckIllustration() {
 }
 
 export function DossierValidationPage() {
+  const { t } = useTranslation('dossier')
   const [searchParams] = useSearchParams()
   const contractId = searchParams.get('contractId') ?? ''
   const dossierLink = contractId ? `/dossier?contractId=${contractId}` : '/dossier'
@@ -138,7 +140,7 @@ export function DossierValidationPage() {
   return (
     <AppLayout activeTab="accueil">
       <div className={styles.page}>
-        <PageHeader title="Mon dossier" backTo={dossierLink} />
+        <PageHeader title={t('detail.title')} backTo={dossierLink} />
 
         <div className={styles.stepperWrap}>
           <Stepper steps={DOSSIER_STEPS} currentStep={validationComplete ? 5 : 4} />
@@ -151,12 +153,12 @@ export function DossierValidationPage() {
               <h1 className={styles.heroTitle}>
                 {validationComplete
                   ? 'Votre titre est activé'
-                  : 'Votre dossier est en cours de validation'}
+                  : t('validation.heroTitle')}
               </h1>
               <p className={styles.heroSubtitle}>
                 {validationComplete
                   ? 'Votre Imagine R est maintenant visible sur la fiche du bénéficiaire.'
-                  : 'Nos équipes vérifient vos documents. Vous recevrez une notification dès que votre titre sera prêt.'}
+                  : t('validation.heroSubtitle')}
               </p>
             </div>
           </div>
@@ -210,11 +212,11 @@ export function DossierValidationPage() {
 
           <Link to="/espace">
             <Button>
-              Suivre mon dossier
+              {t('validation.track')}
             </Button>
           </Link>
           <Link to="/aide" className={styles.helpLink}>
-            Une question ? Consulter l'aide
+            {t('validation.helpLink')}
           </Link>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { contractsApi, type ContractResponse } from '../api/contracts'
 import {
   clientStatusHint,
@@ -92,6 +93,7 @@ function UploadCloudIcon() {
 
 export function MonDossierPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('dossier')
   const { token } = useAuth()
   const [searchParams] = useSearchParams()
   const contractId = searchParams.get('contractId') ?? ''
@@ -270,7 +272,7 @@ export function MonDossierPage() {
       return (
         <AppLayout activeTab="accueil">
           <div className={styles.page}>
-            <PageHeader title="Mon dossier" backTo="/espace" />
+            <PageHeader title={t('detail.title')} backTo="/espace" />
             <p>Chargement du dossier…</p>
           </div>
         </AppLayout>
@@ -322,7 +324,7 @@ export function MonDossierPage() {
     return (
       <AppLayout activeTab="accueil">
         <div className={styles.page}>
-          <PageHeader title="Mon dossier" backTo="/espace" />
+          <PageHeader title={t('detail.title')} backTo="/espace" />
           <Card>
             <p>Aucun dossier en cours. Lancez une souscription pour commencer.</p>
             <Link to="/souscription/nouvelle">
@@ -345,7 +347,7 @@ export function MonDossierPage() {
   return (
     <AppLayout activeTab="accueil">
       <div className={styles.page}>
-        <PageHeader title="Mon dossier" backTo="/espace" />
+        <PageHeader title={t('detail.title')} backTo="/espace" />
 
         {loadError && (
           <p className={styles.loadError} role="alert">
@@ -357,7 +359,7 @@ export function MonDossierPage() {
           <p>Chargement du dossier…</p>
         ) : (
           <>
-            <section className={styles.summary} aria-label="Résumé du dossier">
+            <section className={styles.summary} aria-label={t('detail.summaryAria')}>
               <div className={styles.cardVisual} aria-hidden="true">
                 <div className={styles.cardChip} />
                 <span className={styles.cardBrand}>navigo</span>
@@ -421,7 +423,7 @@ export function MonDossierPage() {
             </div>
 
             <div className={styles.content}>
-              <section className={styles.documentsPanel} aria-label="Justificatifs">
+              <section className={styles.documentsPanel} aria-label={t('detail.documents')}>
                 <Card className={styles.accordionCard}>
                   <button
                     type="button"
@@ -433,7 +435,7 @@ export function MonDossierPage() {
                       <span className={styles.accordionIcon} aria-hidden="true">
                         <DocIcon />
                       </span>
-                      <span className={styles.accordionTitle}>Justificatifs</span>
+                      <span className={styles.accordionTitle}>{t('detail.documents')}</span>
                     </span>
                     <ChevronIcon open={accordionOpen} />
                   </button>
@@ -441,7 +443,7 @@ export function MonDossierPage() {
                   {accordionOpen && (
                     <div className={styles.accordionBody}>
                       <p className={styles.instruction}>
-                        Déposez les documents suivants pour continuer votre demande.
+                        {t('detail.instruction')}
                       </p>
                       <div className={styles.documentList}>
                         {documentSlots.map((slot) => (
@@ -473,7 +475,7 @@ export function MonDossierPage() {
                 </Card>
               </section>
 
-              <aside className={styles.actionsPanel} aria-label="Dépôt de documents">
+              <aside className={styles.actionsPanel} aria-label={t('detail.uploadAria')}>
                 {selectedSlot ? (
                   <>
                     <p className={styles.uploadContext}>
@@ -562,7 +564,7 @@ export function MonDossierPage() {
                   onClick={() => void handleUpload()}
                 >
                   <UploadCloudIcon />
-                  {uploading ? 'Envoi…' : 'Déposer le document'}
+                  {uploading ? 'Envoi…' : t('detail.submitDocuments')}
                 </Button>
 
                 <Button

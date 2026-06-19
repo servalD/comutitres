@@ -1,6 +1,6 @@
 import {
-  JUSTIFICATIF_TYPES,
-  STATUS_LABELS,
+  justificatifTypes,
+  docStatusLabel,
   isYousignVerifiedType,
   type JustificatifResponse,
 } from '../api/justificatifs'
@@ -36,7 +36,7 @@ const UPLOAD_STATUS_PRIORITY: Record<string, number> = {
 }
 
 function justificatifTypeLabel(type: string): string {
-  return JUSTIFICATIF_TYPES.find((t) => t.value === type)?.label ?? type
+  return justificatifTypes().find((t) => t.value === type)?.label ?? type
 }
 
 function uploadPriority(status: string): number {
@@ -79,7 +79,7 @@ function slotStatusLabel(
   ) {
     return 'Analyse automatique en cours…'
   }
-  return STATUS_LABELS[upload.status] ?? upload.status
+  return docStatusLabel(upload.status)
 }
 
 function slotCanSelect(upload: JustificatifResponse | null): boolean {
