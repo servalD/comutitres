@@ -10,6 +10,8 @@ import {
   docStatusLabel,
 } from '../api/justificatifs';
 import { useAuth } from '../contexts/AuthContext';
+import { allRequiredDocumentsReady, buildRequiredDocumentSlots } from '../domain/justificatif-slots';
+import { contractsApi } from '../api/contracts';
 import styles from './Justificatifs.module.css';
 
 function formatFileSize(bytes: number): string {
@@ -33,6 +35,7 @@ export default function Justificatifs() {
   const contractId = searchParams.get('contractId') ?? '';
 
   const [items, setItems] = useState<JustificatifResponse[]>([]);
+  const [productCode, setProductCode] = useState('');
   const [loading, setLoading] = useState(!!contractId);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<JustificatifResponse | null>(null);
@@ -48,13 +51,25 @@ export default function Justificatifs() {
   useEffect(() => {
     if (!token || !contractId) return;
     let cancelled = false;
-    justificatifsApi
-      .list(token, contractId)
-      .then((data) => { if (!cancelled) setItems(data); })
+    Promise.all([
+      justificatifsApi.list(token, contractId),
+      contractsApi.get(token, contractId),
+    ])
+      .then(([data, contract]) => {
+        if (!cancelled) {
+          setItems(data);
+          setProductCode(contract.productCode);
+        }
+      })
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [token, contractId]);
+
+  const documentSlots = productCode
+    ? buildRequiredDocumentSlots(productCode, items)
+    : [];
+  const documentsReady = allRequiredDocumentsReady(documentSlots);
 
   useEffect(() => {
     if (!uploadSuccess) return;
@@ -341,12 +356,18 @@ export default function Justificatifs() {
               </div>
             )}
 
-            <Link
-              to={`/contrat/${contractId}`}
-              className={styles.btnSecondary}
-            >
-              {t('justificatifs.toSignature')}
-            </Link>
+            {documentsReady ? (
+              <Link
+                to={`/contrat/${contractId}`}
+                className={styles.btnSecondary}
+              >
+                {t('justificatifs.toSignature')}
+              </Link>
+            ) : (
+              <p className={styles.docCardHint}>
+                Déposez et validez tous les justificatifs requis avant de signer.
+              </p>
+            )}
           </div>
         </div>
       </div>

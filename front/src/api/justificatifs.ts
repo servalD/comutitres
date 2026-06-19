@@ -31,6 +31,16 @@ export const JUSTIFICATIF_TYPE_VALUES = [
   'autre',
 ] as const;
 
+/** Types vérifiés automatiquement via YouSign Document Verification. */
+export const YOUSIGN_VERIFIED_TYPES = new Set<string>([
+  'piece_identite',
+  'justificatif_domicile',
+]);
+
+export function isYousignVerifiedType(type: string): boolean {
+  return YOUSIGN_VERIFIED_TYPES.has(type);
+}
+
 export function justificatifTypes(): { value: string; label: string }[] {
   return JUSTIFICATIF_TYPE_VALUES.map((value) => ({
     value,
@@ -42,7 +52,18 @@ export function docStatusLabel(status: string): string {
   return ts(`docs.statuses.${status}`, { defaultValue: status });
 }
 
-/** Message client selon le résultat YouSign. */
+export const STATUS_COLORS: Record<string, string> = {
+  recu: '#1972D2',
+  en_cours_de_verification: '#F39224',
+  pre_qualifie: '#1972D2',
+  a_revoir: '#C52625',
+  accepte: '#007D44',
+  refuse: '#C52625',
+  incomplet: '#F39224',
+  expire: '#C52625',
+};
+
+/** Message client selon le résultat YouSign ou la file agent. */
 export function clientStatusHint(j: JustificatifResponse): string | null {
   if (j.status === 'en_cours_de_verification') {
     return ts('docs.hints.verifying');
@@ -67,17 +88,6 @@ export function clientStatusHint(j: JustificatifResponse): string | null {
   }
   return null;
 }
-
-export const STATUS_COLORS: Record<string, string> = {
-  recu: '#1972D2',
-  en_cours_de_verification: '#F39224',
-  pre_qualifie: '#1972D2',
-  a_revoir: '#C52625',
-  accepte: '#007D44',
-  refuse: '#C52625',
-  incomplet: '#F39224',
-  expire: '#C52625',
-};
 
 async function authFetch<T>(
   path: string,

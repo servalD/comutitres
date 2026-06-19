@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import styles from './RecommendationView.module.css'
-import type { SubscriptionProductId } from '../../data/mock'
-import { MOCK_SUBSCRIPTION } from '../../data/mock'
+import type { SubscriptionRecommendation } from '../../domain/subscription-advisor/types'
 
 interface RecommendationViewProps {
   beneficiaryName: string
-  selectedId: SubscriptionProductId
-  onSelect: (id: SubscriptionProductId) => void
+  recommendation: SubscriptionRecommendation
+  submitting?: boolean
+  error?: string | null
   onContinue: () => void
 }
 
@@ -27,65 +27,69 @@ function DocIcon() {
   )
 }
 
-export function RecommendationView({ beneficiaryName, selectedId, onSelect, onContinue }: RecommendationViewProps) {
+export function RecommendationView({
+  beneficiaryName,
+  recommendation,
+  submitting = false,
+  error,
+  onContinue,
+}: RecommendationViewProps) {
   const { t } = useTranslation('subscription')
-  const { products } = MOCK_SUBSCRIPTION
-  const recommended = products.find((p) => p.id === 'imagine-r-junior')!
-  const alternative = products.find((p) => p.id === 'imagine-r-scolaire')!
-  const selected = products.find((p) => p.id === selectedId) ?? recommended
+  const alternative = recommendation.alternatives?.[0]
 
   return (
     <div className={styles.root}>
-      <p className={styles.intro}>{t('recommendationView.intro')}</p>
+      <p className={styles.intro}>
+        {t('recommendationView.intro')} {beneficiaryName}
+      </p>
 
       <div className={styles.cards}>
-        <button
-          type="button"
-          className={[styles.card, styles.recommended, selectedId === recommended.id ? styles.active : ''].filter(Boolean).join(' ')}
-          onClick={() => onSelect(recommended.id)}
+        <div
+          className={[styles.card, styles.recommended, styles.active].join(' ')}
         >
           <div className={styles.cardTop}>
             <div className={styles.cardLeft}>
               <span className={styles.recommendedBadge}>
                 {t('recommendationView.recommendedFor', { name: beneficiaryName })}
               </span>
-              <h3 className={styles.productName}>{recommended.label}</h3>
-              <p className={styles.price}>{recommended.price}</p>
-              <p className={styles.priceMonthly}>{t('recommendationView.monthly', { price: recommended.priceMonthly })}</p>
+              <h3 className={styles.productName}>{recommendation.productLabel}</h3>
+              <p className={styles.price}>{recommendation.tariffLabel}</p>
+              <p className={styles.priceMonthly}>{recommendation.summary}</p>
             </div>
             <div className={styles.cardVisual} aria-hidden="true">
-              <span className={styles.cardBrand}>imagine</span>
+              <span className={styles.cardBrand}>navigo</span>
               <span className={styles.cardLogo}>R</span>
             </div>
           </div>
           <ul className={styles.features}>
-            {recommended.features.map((f) => (
-              <li key={f}>
+            {recommendation.why.map((line) => (
+              <li key={line}>
                 <span className={styles.check}><CheckIcon /></span>
-                {f}
+                {line}
               </li>
             ))}
           </ul>
-        </button>
+        </div>
 
-        <button
-          type="button"
-          className={[styles.card, styles.alternative, selectedId === alternative.id ? styles.active : ''].filter(Boolean).join(' ')}
-          onClick={() => onSelect(alternative.id)}
-        >
-          <div className={styles.altHeader}>
-            <span className={styles.altBadge}>{t('recommendationView.alternative')}</span>
+        {alternative ? (
+          <div className={[styles.card, styles.alternative].join(' ')}>
+            <div className={styles.altHeader}>
+              <span className={styles.altBadge}>{t('recommendationView.alternative')}</span>
+            </div>
+            <h3 className={styles.altName}>{alternative.productLabel}</h3>
+            <p className={styles.altDesc}>{alternative.reason}</p>
           </div>
-          <h3 className={styles.altName}>{alternative.label}</h3>
-          <p className={styles.altPrice}>{alternative.price}</p>
-          <p className={styles.altDesc}>{alternative.description}</p>
-        </button>
+        ) : null}
       </div>
+
+      {recommendation.usageNote ? (
+        <p className={styles.intro}>{recommendation.usageNote}</p>
+      ) : null}
 
       <section className={styles.docsSection}>
         <h4 className={styles.docsTitle}>{t('recommendationView.documentsNeeded')}</h4>
         <div className={styles.docsList}>
-          {selected.requiredDocuments.map((doc) => (
+          {recommendation.documentLabels.map((doc) => (
             <div key={doc} className={styles.docItem}>
               <span className={styles.docIcon}><DocIcon /></span>
               <span className={styles.docLabel}>{doc}</span>
@@ -94,12 +98,16 @@ export function RecommendationView({ beneficiaryName, selectedId, onSelect, onCo
         </div>
       </section>
 
+      {error ? <p className={styles.error}>{error}</p> : null}
+
       <div className={styles.footer}>
-        <button type="button" className={styles.continueBtn} onClick={onContinue}>
-          {t('recommendationView.continueWith')}
-        </button>
-        <button type="button" className={styles.otherLink} onClick={() => onSelect(alternative.id)}>
-          {t('recommendationView.seeOthers')}
+        <button
+          type="button"
+          className={styles.continueBtn}
+          onClick={onContinue}
+          disabled={submitting}
+        >
+          {submitting ? t('recommendationView.creating') : t('recommendationView.continueWith')}
         </button>
       </div>
     </div>
