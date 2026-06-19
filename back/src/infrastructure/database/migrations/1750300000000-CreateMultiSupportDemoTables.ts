@@ -6,9 +6,7 @@ import {
   TableForeignKey,
 } from 'typeorm';
 
-export class CreateMultiSupportDemoTables1750300000000
-  implements MigrationInterface
-{
+export class CreateMultiSupportDemoTables1750300000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.addColumns('supports', [
       new TableColumn({

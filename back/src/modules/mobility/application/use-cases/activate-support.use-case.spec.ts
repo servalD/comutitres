@@ -169,14 +169,14 @@ describe('ActivateSupportUseCase', () => {
       type: SupportType.PHONE,
       status: SupportStatus.ACTIVE,
       walletAddress: '0xabc',
-      supportCommitment: expect.stringMatching(/^sha256:/),
     });
+    expect(result.support.supportCommitment).toMatch(/^sha256:/);
     expect(result.proofEvent).toMatchObject({
       type: 'SUPPORT_AUTHORIZED',
       mobilityIdentityId: 'identity-1',
       transportRightId: 'right-1',
       supportId: result.support.id,
-      eventHash: expect.stringMatching(/^sha256:/),
     });
+    expect(result.proofEvent.eventHash).toMatch(/^sha256:/);
   });
 });

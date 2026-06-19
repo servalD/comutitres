@@ -1,13 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { useExternalAuth } from '@dynamic-labs/sdk-react-core'
 import { mobilityApi } from '../../api/mobility-api'
-import {
-  anomalyStatusLabels,
-  productLabels,
-  supportTypeLabels,
-  transportRightStatusLabels,
-  validationResultLabels,
-} from '../../constants/labels'
+import { useLabels } from '../../constants/labels'
 import type {
   AnomalyCase,
   Contract,
@@ -50,6 +44,12 @@ export function MultiSupportDemoPanel({
   onRefresh,
 }: MultiSupportDemoPanelProps) {
   const { signInWithExternalJwt } = useExternalAuth()
+  const {
+    productLabels,
+    supportTypeLabels,
+    transportRightStatusLabels,
+    validationResultLabels,
+  } = useLabels()
   const activeRight = rights.find((right) => right.status === 'active') ?? rights[0]
   const activeSupports = useMemo(
     () =>
@@ -381,6 +381,8 @@ export function MultiSupportDemoPanel({
 }
 
 export function AnomalySummary({ anomalies }: { anomalies: AnomalyCase[] }) {
+  const { anomalyStatusLabels } = useLabels()
+
   if (anomalies.length === 0) return null
 
   return (

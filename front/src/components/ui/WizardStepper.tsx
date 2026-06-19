@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import styles from './WizardStepper.module.css'
 
 interface WizardStepperProps {
@@ -6,6 +7,7 @@ interface WizardStepperProps {
 }
 
 export function WizardStepper({ currentStep, totalSteps }: WizardStepperProps) {
+  const { t } = useTranslation('common')
   return (
     <div
       className={styles.stepper}
@@ -13,7 +15,7 @@ export function WizardStepper({ currentStep, totalSteps }: WizardStepperProps) {
       aria-valuenow={currentStep}
       aria-valuemin={1}
       aria-valuemax={totalSteps}
-      aria-label={`Étape ${currentStep} sur ${totalSteps}`}
+      aria-label={t('stepOf', { step: currentStep, total: totalSteps })}
     >
       <div className={styles.track}>
         {Array.from({ length: totalSteps }, (_, index) => {

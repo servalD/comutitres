@@ -166,6 +166,7 @@ export const envSchema = z
     MISTRAL_BASE_URL: z.string().url().optional(),
     MISTRAL_CHAT_MODEL: z.string().default('ministral-3b-2512'),
     MISTRAL_EMBED_MODEL: z.string().default('mistral-embed'),
+    MISTRAL_VISION_MODEL: z.string().default('pixtral-12b-2409'),
   })
   .superRefine((config, ctx) => {
     if (config.FRANCECONNECT_MODE === 'sandbox') {
@@ -190,7 +191,9 @@ export const envSchema = z
         });
       }
 
-      if (config.FRANCECONNECT_ISSUER_URL !== FRANCECONNECT_SANDBOX_ISSUER_URL) {
+      if (
+        config.FRANCECONNECT_ISSUER_URL !== FRANCECONNECT_SANDBOX_ISSUER_URL
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['FRANCECONNECT_ISSUER_URL'],
@@ -212,8 +215,7 @@ export const envSchema = z
       }
 
       if (
-        config.FRANCECONNECT_CLIENT_ID ===
-        FRANCECONNECT_LEGACY_PUBLIC_CLIENT_ID
+        config.FRANCECONNECT_CLIENT_ID === FRANCECONNECT_LEGACY_PUBLIC_CLIENT_ID
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,

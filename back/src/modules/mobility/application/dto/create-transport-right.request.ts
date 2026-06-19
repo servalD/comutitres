@@ -1,4 +1,4 @@
-import { IsDateString, IsEnum, IsString, IsUUID } from 'class-validator';
+import { IsDateString, IsEnum, IsUUID } from 'class-validator';
 import { ProductType } from '../../domain/enums/product-type.enum';
 
 export class CreateTransportRightRequest {
@@ -13,5 +13,4 @@ export class CreateTransportRightRequest {
 
   @IsDateString()
   validTo: string;
-
 }

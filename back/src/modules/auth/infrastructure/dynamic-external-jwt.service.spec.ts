@@ -11,8 +11,7 @@ describe('DynamicExternalJwtService', () => {
   it('issues a minimal Dynamic-scoped JWT and exposes the matching JWKS', async () => {
     const service = new DynamicExternalJwtService(
       config({
-        DYNAMIC_EXTERNAL_JWT_ISSUER:
-          'http://localhost:3000/api/auth/dynamic',
+        DYNAMIC_EXTERNAL_JWT_ISSUER: 'http://localhost:3000/api/auth/dynamic',
         DYNAMIC_EXTERNAL_JWT_AUDIENCE: 'dynamic',
         DYNAMIC_EXTERNAL_JWT_KID: 'test-key',
       }) as never,

@@ -1,5 +1,5 @@
+import type { ValidationTimelineItem } from './validation-timeline-items'
 import styles from './ValidationTimeline.module.css'
-import { MOCK_VALIDATION_TIMELINE } from '../../data/mock'
 
 function CheckIcon() {
   return (
@@ -17,10 +17,14 @@ function SpinnerIcon() {
   )
 }
 
-export function ValidationTimeline() {
+interface ValidationTimelineProps {
+  items: ValidationTimelineItem[]
+}
+
+export function ValidationTimeline({ items }: ValidationTimelineProps) {
   return (
     <ol className={styles.timeline}>
-      {MOCK_VALIDATION_TIMELINE.map((item) => (
+      {items.map((item) => (
         <li key={item.id} className={[styles.item, item.done ? styles.done : '', item.active ? styles.active : ''].filter(Boolean).join(' ')}>
           <span className={styles.icon} aria-hidden="true">
             {item.done ? <CheckIcon /> : item.active ? <SpinnerIcon /> : null}

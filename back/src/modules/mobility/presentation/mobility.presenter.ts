@@ -592,7 +592,9 @@ export const toTransportRightResponse = (
   updatedAt: right.updatedAt.toISOString(),
 });
 
-export const toProofEventResponse = (event: ProofEvent): ProofEventResponse => ({
+export const toProofEventResponse = (
+  event: ProofEvent,
+): ProofEventResponse => ({
   id: event.id,
   mobilityIdentityId: event.mobilityIdentityId,
   transportRightId: event.transportRightId,

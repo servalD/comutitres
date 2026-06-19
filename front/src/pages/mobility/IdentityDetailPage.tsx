@@ -1,27 +1,22 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { mobilityApi } from '../../api/mobility-api'
 import { ApiError } from '../../api/http-client'
-import {
-  identityStatusLabels,
-  profileLabels,
-} from '../../constants/labels'
+import { useLabels } from '../../constants/labels'
 import type {
   Contract,
   Document,
   MobilityIdentity,
-  ProofEvent,
   Relationship,
   Support,
   TimelineEvent,
-  TransportRight,
 } from '../../domain/types/mobility'
 import { ContractList } from '../../components/mobility/ContractList'
 import { DocumentList } from '../../components/mobility/DocumentList'
 import { SupportList } from '../../components/mobility/SupportList'
 import { TimelineList } from '../../components/mobility/TimelineList'
 import { RelationshipList } from '../../components/mobility/RelationshipList'
-import { MultiSupportDemoPanel } from '../../components/mobility/MultiSupportDemoPanel'
 import { CreateDocumentForm } from '../../components/mobility/forms/CreateDocumentForm'
 import { CreateSupportForm } from '../../components/mobility/forms/CreateSupportForm'
 import { CreateRelationshipForm } from '../../components/mobility/forms/CreateRelationshipForm'
@@ -35,26 +30,25 @@ import styles from './MobilityPages.module.css'
 
 type DetailTab = 'resume' | 'contracts' | 'documents' | 'supports' | 'timeline' | 'access'
 
-const tabs: TabItem<DetailTab>[] = [
-  { id: 'resume', label: 'Résumé', icon: '👤' },
-  { id: 'contracts', label: 'Abonnements', icon: '🎫' },
-  { id: 'documents', label: 'Documents', icon: '📄' },
-  { id: 'supports', label: 'Carte', icon: '💳' },
-  { id: 'timeline', label: 'Historique', icon: '🕐' },
-  { id: 'access', label: 'Accès', icon: '🔗' },
-]
-
 export function IdentityDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t, i18n } = useTranslation('mobility')
+  const { identityStatusLabels, profileLabels } = useLabels()
+  const tabs: TabItem<DetailTab>[] = [
+    { id: 'resume', label: t('detail.tabs.resume'), icon: '👤' },
+    { id: 'contracts', label: t('detail.tabs.contracts'), icon: '🎫' },
+    { id: 'documents', label: t('detail.tabs.documents'), icon: '📄' },
+    { id: 'supports', label: t('detail.tabs.supports'), icon: '💳' },
+    { id: 'timeline', label: t('detail.tabs.timeline'), icon: '🕐' },
+    { id: 'access', label: t('detail.tabs.access'), icon: '🔗' },
+  ]
   const [activeTab, setActiveTab] = useState<DetailTab>('resume')
   const [identity, setIdentity] = useState<MobilityIdentity | null>(null)
   const [relationships, setRelationships] = useState<Relationship[]>([])
   const [contracts, setContracts] = useState<Contract[]>([])
   const [documents, setDocuments] = useState<Document[]>([])
   const [supports, setSupports] = useState<Support[]>([])
-  const [transportRights, setTransportRights] = useState<TransportRight[]>([])
-  const [proofEvents, setProofEvents] = useState<ProofEvent[]>([])
   const [timeline, setTimeline] = useState<TimelineEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -75,8 +69,6 @@ export function IdentityDetailPage() {
           contractsData,
           documentsData,
           supportsData,
-          transportRightsData,
-          proofEventsData,
           timelineData,
         ] = await Promise.all([
           mobilityApi.getIdentity(identityId),
@@ -84,10 +76,6 @@ export function IdentityDetailPage() {
           mobilityApi.listContracts(identityId),
           mobilityApi.listDocuments(identityId),
           mobilityApi.listSupports(identityId),
-          mobilityApi
-            .listTransportRights(identityId)
-            .catch(() => [] as TransportRight[]),
-          mobilityApi.listProofEvents(identityId).catch(() => [] as ProofEvent[]),
           mobilityApi.getTimeline(identityId),
         ])
 
@@ -99,13 +87,11 @@ export function IdentityDetailPage() {
         setContracts(contractsData)
         setDocuments(documentsData)
         setSupports(supportsData)
-        setTransportRights(transportRightsData)
-        setProofEvents(proofEventsData)
         setTimeline(timelineData)
         setError(null)
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof ApiError ? err.message : 'Chargement impossible')
+          setError(err instanceof ApiError ? err.message : t('subscribe.loadError'))
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -117,7 +103,7 @@ export function IdentityDetailPage() {
     return () => {
       cancelled = true
     }
-  }, [id, reloadKey])
+  }, [id, reloadKey, t])
 
   function refresh() {
     setReloadKey((key) => key + 1)
@@ -134,15 +120,15 @@ export function IdentityDetailPage() {
   }
 
   if (!id) {
-    return <p className={styles.status}>Identité introuvable.</p>
+    return <p className={styles.status}>{t('subscribe.notFound')}</p>
   }
 
   if (loading) {
-    return <p className={styles.loading}>Chargement…</p>
+    return <p className={styles.loading}>{t('common:loading')}</p>
   }
 
   if (error || !identity) {
-    return <p className={styles.status}>{error ?? 'Identité introuvable.'}</p>
+    return <p className={styles.status}>{error ?? t('subscribe.notFound')}</p>
   }
 
   const activeRelationships = relationships.filter((rel) => rel.status === 'active')
@@ -150,7 +136,7 @@ export function IdentityDetailPage() {
   return (
     <div className={styles.page}>
       <Link to="/mobility" className={styles.back}>
-        <span aria-hidden="true">←</span> Mes identités
+        <span aria-hidden="true">←</span> {t('detail.backToList')}
       </Link>
 
       <header className={styles.header}>
@@ -163,8 +149,11 @@ export function IdentityDetailPage() {
               {identity.firstName} {identity.lastName}
             </h1>
             <p>
-              {profileLabels[identity.currentProfile]} · {identity.calculatedAge} ans · né(e) le{' '}
-              {new Date(identity.birthDate).toLocaleDateString('fr-FR')}
+              {profileLabels[identity.currentProfile]} ·{' '}
+              {t('identity.ageYears', { count: identity.calculatedAge })} ·{' '}
+              {t('detail.bornOn', {
+                date: new Date(identity.birthDate).toLocaleDateString(i18n.language),
+              })}
             </p>
             <Badge tone={identity.status === 'active' ? 'success' : 'warning'}>
               {identityStatusLabels[identity.status]}
@@ -192,13 +181,13 @@ export function IdentityDetailPage() {
         {activeTab === 'contracts' ? (
           <div className={styles.section}>
             <Button onClick={() => navigate(`/mobility/${id}/subscribe`)}>
-              <span aria-hidden="true">🎫</span> Souscrire un forfait
+              <span aria-hidden="true">🎫</span> {t('subscribe.title')}
             </Button>
             {contracts.length === 0 ? (
               <EmptyState
                 icon="🎫"
-                title="Aucun abonnement"
-                description="Lancez l’assistant pour trouver le forfait adapté."
+                title={t('detail.noContracts')}
+                description={t('detail.noContractsDesc')}
               />
             ) : (
               <ContractList contracts={contracts} />
@@ -215,7 +204,7 @@ export function IdentityDetailPage() {
               }}
             />
             {documents.length === 0 ? (
-              <EmptyState icon="📄" title="Aucun document" />
+              <EmptyState icon="📄" title={t('detail.noDocuments')} />
             ) : (
               <DocumentList documents={documents} />
             )}
@@ -230,16 +219,8 @@ export function IdentityDetailPage() {
                 refresh()
               }}
             />
-            <MultiSupportDemoPanel
-              identityId={id}
-              contracts={contracts}
-              supports={supports}
-              rights={transportRights}
-              proofEvents={proofEvents}
-              onRefresh={refresh}
-            />
             {supports.length === 0 ? (
-              <EmptyState icon="💳" title="Aucun support" />
+              <EmptyState icon="💳" title={t('detail.noSupports')} />
             ) : (
               <SupportList supports={supports} />
             )}
@@ -249,7 +230,7 @@ export function IdentityDetailPage() {
         {activeTab === 'timeline' ? (
           <div className={styles.section}>
             {timeline.length === 0 ? (
-              <EmptyState icon="🕐" title="Aucun événement" />
+              <EmptyState icon="🕐" title={t('detail.noTimeline')} />
             ) : (
               <TimelineList events={timeline} />
             )}
@@ -267,7 +248,7 @@ export function IdentityDetailPage() {
               }}
             />
             {relationships.length === 0 ? (
-              <EmptyState icon="🔗" title="Aucun lien compte" />
+              <EmptyState icon="🔗" title={t('detail.noAccess')} />
             ) : (
               <RelationshipList
                 relationships={relationships}

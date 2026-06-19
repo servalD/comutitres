@@ -15,6 +15,7 @@ import { SupportOrmEntity } from '../../modules/mobility/infrastructure/support.
 import { TimelineEventOrmEntity } from '../../modules/mobility/infrastructure/timeline-event.orm-entity';
 import { TransportRightOrmEntity } from '../../modules/mobility/infrastructure/transport-right.orm-entity';
 import { ValidationEventOrmEntity } from '../../modules/mobility/infrastructure/validation-event.orm-entity';
+import { RecoveryRequestOrmEntity } from '../../modules/auth/infrastructure/recovery-request.orm-entity';
 import { UserOrmEntity } from '../../modules/users/infrastructure/user.orm-entity';
 
 @Module({
@@ -44,6 +45,7 @@ import { UserOrmEntity } from '../../modules/users/infrastructure/user.orm-entit
           SubscriptionContractOrmEntity,
           CgvuAcceptanceOrmEntity,
           JustificatifOrmEntity,
+          RecoveryRequestOrmEntity,
         ],
         migrations: [__dirname + '/migrations/*.{ts,js}'],
         // Never auto-sync schema: migrations are the single source of truth.

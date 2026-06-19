@@ -3,6 +3,7 @@ import { DynamicContextProvider } from '@dynamic-labs/sdk-react-core'
 import './styles/comutitres-tokens.css'
 import './styles/global.css'
 import './index.css'
+import './i18n'
 import App from './App.tsx'
 
 const dynamicEnvironmentId =

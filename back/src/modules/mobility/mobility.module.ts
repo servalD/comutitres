@@ -35,6 +35,8 @@ import { RegisterTransportRightUseCase } from './application/use-cases/register-
 import { ListTransportRightsUseCase } from './application/use-cases/list-transport-rights.use-case';
 import { RevokeRelationshipUseCase } from './application/use-cases/revoke-relationship.use-case';
 import { ProvisionOwnerMobilityIdentityUseCase } from './application/use-cases/provision-owner-mobility-identity.use-case';
+import { ActivateSubscriptionOnProfileUseCase } from './application/use-cases/activate-subscription-on-profile.use-case';
+import { SyncSubscriptionPaymentToProfileUseCase } from './application/use-cases/sync-subscription-payment-to-profile.use-case';
 import { UpdateMobilityIdentityUseCase } from './application/use-cases/update-mobility-identity.use-case';
 import { ValidateJourneyEventUseCase } from './application/use-cases/validate-journey-event.use-case';
 import { AnomalyCaseOrmEntity } from './infrastructure/anomaly-case.orm-entity';
@@ -131,7 +133,17 @@ import { MobilityController } from './presentation/mobility.controller';
     GetTimelineUseCase,
     ProvisionOwnerMobilityIdentityUseCase,
     ValidateJourneyEventUseCase,
+    SyncSubscriptionPaymentToProfileUseCase,
+    ActivateSubscriptionOnProfileUseCase,
   ],
-  exports: [ProvisionOwnerMobilityIdentityUseCase],
+  exports: [
+    ProvisionOwnerMobilityIdentityUseCase,
+    SyncSubscriptionPaymentToProfileUseCase,
+    ActivateSubscriptionOnProfileUseCase,
+    MobilityIdentityRepository,
+    RelationshipRepository,
+    DefaultPermissionsService,
+    TimelineRecorderService,
+  ],
 })
 export class MobilityModule {}

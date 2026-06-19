@@ -53,7 +53,7 @@ export class DynamicExternalJwtService {
     this.publicKey = publicKey;
   }
 
-  async issueForUser(
+  issueForUser(
     input: DynamicExternalJwtInput,
   ): Promise<DynamicExternalJwtResult> {
     const expiresIn = 5 * 60;
@@ -75,18 +75,18 @@ export class DynamicExternalJwtService {
       },
     );
 
-    return {
+    return Promise.resolve({
       externalJwt,
       externalUserId: input.userId,
       expiresIn,
       issuer: this.issuer,
       audience: this.audience,
       jwksUrl: `${this.issuer}/.well-known/jwks.json`,
-    };
+    });
   }
 
-  async getJwks(): Promise<JsonWebKeySet> {
-    return {
+  getJwks(): Promise<JsonWebKeySet> {
+    return Promise.resolve({
       keys: [
         {
           ...this.publicKey.export({ format: 'jwk' }),
@@ -95,7 +95,7 @@ export class DynamicExternalJwtService {
           alg: 'RS256',
         },
       ],
-    };
+    });
   }
 
   private get issuer(): string {

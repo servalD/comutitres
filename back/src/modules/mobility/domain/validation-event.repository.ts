@@ -13,7 +13,9 @@ export interface AppendValidationEventParams {
 }
 
 export abstract class ValidationEventRepository {
-  abstract append(params: AppendValidationEventParams): Promise<ValidationEvent>;
+  abstract append(
+    params: AppendValidationEventParams,
+  ): Promise<ValidationEvent>;
   abstract findLastAcceptedByRight(
     transportRightId: string,
   ): Promise<ValidationEvent | null>;

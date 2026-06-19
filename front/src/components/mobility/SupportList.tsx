@@ -1,5 +1,6 @@
-import { supportStatusLabels, supportTypeLabels } from '../../constants/labels'
-import type { Support, SupportStatus, SupportType } from '../../domain/types/mobility'
+import { useTranslation } from 'react-i18next'
+import { useLabels } from '../../constants/labels'
+import type { Support, SupportStatus } from '../../domain/types/mobility'
 import { Badge } from '../ui/Badge'
 import { Card } from '../ui/Card'
 import styles from './ResourceList.module.css'
@@ -14,6 +15,8 @@ function supportTone(status: SupportStatus): 'success' | 'warning' | 'danger' | 
 }
 
 export function SupportList({ supports }: { supports: Support[] }) {
+  const { t, i18n } = useTranslation('mobility')
+  const { supportStatusLabels } = useLabels()
   if (supports.length === 0) return null
 
   return (
@@ -23,26 +26,17 @@ export function SupportList({ supports }: { supports: Support[] }) {
           <Card className={styles.item}>
             <div className={styles.row}>
               <span className={styles.icon} aria-hidden="true">
-                {supportIcon(support.type)}
+                💳
               </span>
               <div>
-                <strong>{supportTypeLabels[support.type]}</strong>
+                <strong>{t('support.navigoCard')}</strong>
                 <p className={styles.sub}>
                   {support.activatedAt
-                    ? `Active le ${new Date(support.activatedAt).toLocaleDateString('fr-FR')}`
-                    : 'En attente d activation'}
+                    ? t('support.activatedOn', {
+                        date: new Date(support.activatedAt).toLocaleDateString(i18n.language),
+                      })
+                    : t('support.physicalCard')}
                 </p>
-                {support.walletAddress ? (
-                  <p className={styles.sub}>Wallet {compact(support.walletAddress)}</p>
-                ) : null}
-                {support.supportCommitment ? (
-                  <p className={styles.sub}>Commitment {compact(support.supportCommitment)}</p>
-                ) : null}
-                {support.expiresAt ? (
-                  <p className={styles.sub}>
-                    Expire le {new Date(support.expiresAt).toLocaleDateString('fr-FR')}
-                  </p>
-                ) : null}
               </div>
               <Badge tone={supportTone(support.status)}>
                 {supportStatusLabels[support.status]}
@@ -53,14 +47,4 @@ export function SupportList({ supports }: { supports: Support[] }) {
       ))}
     </ul>
   )
-}
-
-function supportIcon(type: SupportType): string {
-  if (type === 'phone') return 'TEL'
-  if (type === 'watch') return 'W'
-  return 'CB'
-}
-
-function compact(value: string): string {
-  return value.length > 20 ? `${value.slice(0, 10)}...${value.slice(-6)}` : value
 }

@@ -81,7 +81,9 @@ export class ValidateJourneyEventUseCase {
       occurredAt.getTime() < right.validFrom.getTime() ||
       occurredAt.getTime() > right.validTo.getTime()
     ) {
-      throw new BadRequestException('Transport right is outside validity period');
+      throw new BadRequestException(
+        'Transport right is outside validity period',
+      );
     }
     if (support.contractId !== right.contractId) {
       throw new BadRequestException('Support is not linked to this right');

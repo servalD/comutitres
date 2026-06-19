@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { InfoBanner } from '../ui/InfoBanner'
 import styles from './RoleAssignmentForm.module.css'
 
@@ -13,28 +14,28 @@ export function RoleAssignmentForm({
   payerName,
   isMinor,
 }: RoleAssignmentFormProps) {
+  const { t } = useTranslation('subscription')
   const [sameAsLegal, setSameAsLegal] = useState(true)
+  const payerYou = `${payerName} ${t('roleAssignment.you')}`
 
   return (
     <div className={styles.form}>
       {isMinor && (
-        <InfoBanner>
-          {beneficiaryName} est mineur(e). Un payeur et un responsable légal sont requis.
-        </InfoBanner>
+        <InfoBanner>{t('roleAssignment.minorNotice', { name: beneficiaryName })}</InfoBanner>
       )}
 
       <div className={styles.field}>
-        <label className={styles.label}>Payeur</label>
+        <label className={styles.label}>{t('roleAssignment.payer')}</label>
         <div className={styles.select}>
-          <span className={styles.selectValue}>{payerName} (vous)</span>
+          <span className={styles.selectValue}>{payerYou}</span>
           <ChevronIcon />
         </div>
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Responsable légal</label>
+        <label className={styles.label}>{t('roleAssignment.legalGuardian')}</label>
         <div className={styles.select}>
-          <span className={styles.selectValue}>{payerName} (vous)</span>
+          <span className={styles.selectValue}>{payerYou}</span>
           <ChevronIcon />
         </div>
       </div>
@@ -46,18 +47,18 @@ export function RoleAssignmentForm({
           onChange={(e) => setSameAsLegal(e.target.checked)}
           className={styles.checkbox}
         />
-        <span>Le payeur est aussi responsable légal</span>
+        <span>{t('roleAssignment.samePayerLegal')}</span>
       </label>
 
       <p className={styles.consent}>
         <span className={styles.consentIcon} aria-hidden="true">
           <ShieldIcon />
         </span>
-        Le payeur accepte les{' '}
-        <a href="#" className={styles.link}>
-          conditions financières
-        </a>{' '}
-        et le prélèvement.
+        <Trans
+          i18nKey="roleAssignment.consent"
+          ns="subscription"
+          components={{ link: <a href="#" className={styles.link} /> }}
+        />
       </p>
     </div>
   )

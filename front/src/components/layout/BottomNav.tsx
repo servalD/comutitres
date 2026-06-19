@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { NAV_ITEMS, type TabId } from './nav-items'
 import styles from './BottomNav.module.css'
 
@@ -64,15 +65,16 @@ const ICONS = {
   aide: AideIcon,
 } as const
 
-const MOBILE_LABELS: Record<TabId, string> = {
-  accueil: 'Accueil',
-  foyer: 'Foyer',
-  aide: 'Aide',
+const MOBILE_LABEL_KEYS: Record<TabId, string> = {
+  accueil: 'tabs.accueil',
+  foyer: 'tabs.foyerShort',
+  aide: 'tabs.aide',
 }
 
 export function BottomNav({ activeTab }: BottomNavProps) {
+  const { t } = useTranslation('common')
   return (
-    <nav className={styles.nav} aria-label="Navigation mobile">
+    <nav className={styles.nav} aria-label={t('nav.mobileAriaLabel')}>
       {NAV_ITEMS.map((item) => {
         const Icon = ICONS[item.id]
         const isActive = activeTab === item.id
@@ -85,7 +87,7 @@ export function BottomNav({ activeTab }: BottomNavProps) {
               aria-disabled="true"
             >
               <Icon />
-              <span>{MOBILE_LABELS[item.id]}</span>
+              <span>{t(MOBILE_LABEL_KEYS[item.id])}</span>
             </span>
           )
         }
@@ -102,7 +104,7 @@ export function BottomNav({ activeTab }: BottomNavProps) {
             end={item.id === 'accueil'}
           >
             <Icon />
-            <span>{MOBILE_LABELS[item.id]}</span>
+            <span>{t(MOBILE_LABEL_KEYS[item.id])}</span>
           </NavLink>
         )
       })}

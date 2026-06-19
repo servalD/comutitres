@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { NAV_ITEMS, type TabId } from './nav-items'
 import styles from './DesktopNav.module.css'
 
@@ -7,8 +8,9 @@ interface DesktopNavProps {
 }
 
 export function DesktopNav({ activeTab }: DesktopNavProps) {
+  const { t } = useTranslation('common')
   return (
-    <nav className={styles.nav} aria-label="Navigation principale">
+    <nav className={styles.nav} aria-label={t('nav.ariaLabel')}>
       {NAV_ITEMS.map((item) => {
         if (item.disabled) {
           return (
@@ -17,7 +19,7 @@ export function DesktopNav({ activeTab }: DesktopNavProps) {
               className={[styles.link, styles.disabled].join(' ')}
               aria-disabled="true"
             >
-              {item.label}
+              {t(item.labelKey)}
             </span>
           )
         }
@@ -33,7 +35,7 @@ export function DesktopNav({ activeTab }: DesktopNavProps) {
                 .join(' ')
             }
           >
-            {item.label}
+            {t(item.labelKey)}
           </NavLink>
         )
       })}

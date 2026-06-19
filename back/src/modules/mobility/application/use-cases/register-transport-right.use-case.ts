@@ -37,7 +37,9 @@ export class RegisterTransportRightUseCase {
       throw new BadRequestException('Transport right product mismatch');
     }
     if (contract.status !== ContractStatus.ACTIVE) {
-      throw new BadRequestException('Contract must be active to create a right');
+      throw new BadRequestException(
+        'Contract must be active to create a right',
+      );
     }
 
     return this.transportRightRepository.create({

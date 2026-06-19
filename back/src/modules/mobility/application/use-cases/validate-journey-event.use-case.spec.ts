@@ -64,7 +64,8 @@ describe('ValidateJourneyEventUseCase', () => {
     supportForLookup = support;
     useCase = new ValidateJourneyEventUseCase(
       {
-        findById: (id: string) => Promise.resolve(id === right.id ? right : null),
+        findById: (id: string) =>
+          Promise.resolve(id === right.id ? right : null),
         create: jest.fn(),
         findByMobilityIdentityId: jest.fn(),
       },
@@ -155,8 +156,8 @@ describe('ValidateJourneyEventUseCase', () => {
       type: 'short_window_impossible',
       severity: 'medium',
       status: 'open',
-      summary: expect.stringContaining('La Defense'),
     });
+    expect(result.anomaly?.summary).toContain('La Defense');
   });
 
   it('refuses validation when the support is linked to another contract', async () => {

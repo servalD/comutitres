@@ -40,13 +40,13 @@ function controller(dynamicKind: 'sandbox' | 'live') {
 }
 
 describe('AuthController Dynamic external JWT', () => {
-  it('refuses local users', async () => {
+  it('refuses local users', () => {
     expect(() =>
       controller('sandbox').dynamicExternalToken(user(AuthProvider.LOCAL)),
     ).toThrow(ForbiddenException);
   });
 
-  it('refuses non-sandbox Dynamic environments', async () => {
+  it('refuses non-sandbox Dynamic environments', () => {
     expect(() =>
       controller('live').dynamicExternalToken(user(AuthProvider.FRANCECONNECT)),
     ).toThrow(ForbiddenException);
@@ -54,7 +54,9 @@ describe('AuthController Dynamic external JWT', () => {
 
   it('issues a token only for FranceConnect users in Dynamic sandbox', async () => {
     await expect(
-      controller('sandbox').dynamicExternalToken(user(AuthProvider.FRANCECONNECT)),
+      controller('sandbox').dynamicExternalToken(
+        user(AuthProvider.FRANCECONNECT),
+      ),
     ).resolves.toMatchObject({
       externalJwt: 'token',
       externalUserId: 'user-1',

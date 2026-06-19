@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { contractsApi } from '../api/contracts'
 import { SubscriptionWizardShell } from '../components/layout/SubscriptionWizardShell'
-import { RoleAssignmentForm } from '../components/subscription/RoleAssignmentForm'
-import { UsageSelectionCards } from '../components/subscription/UsageSelectionCards'
 import { RecommendationView } from '../components/subscription/RecommendationView'
+import { SubscriptionAdvisorStep } from '../components/subscription/SubscriptionAdvisorStep'
+import { UsageSelectionCards } from '../components/subscription/UsageSelectionCards'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { InfoBanner } from '../components/ui/InfoBanner'
@@ -11,16 +13,26 @@ import { SelectionCard } from '../components/ui/SelectionCard'
 import { WizardStepper } from '../components/ui/WizardStepper'
 import { useAuth } from '../contexts/AuthContext'
 import type { SubscriptionBeneficiaryView } from '../data/household-from-api'
+import { MOCK_SUBSCRIPTION, type UsageOption } from '../data/mock'
 import {
-  MOCK_SUBSCRIPTION,
-  type BeneficiaryChoice,
-  type SubscriptionProductId,
-  type UsageOption,
-} from '../data/mock'
+  applyAdvisorAnswer,
+  clearAdvisorAnswer,
+  getAdvisorSelectedValue,
+  seedAnswersFromUsage,
+} from '../domain/subscription-advisor/advisor-answers'
+import {
+  buildCreateContractPayload,
+  usageToTravelHabit,
+} from '../domain/subscription-advisor/contract-mapping'
+import type {
+  QuestionId,
+  SubscriptionAnswers,
+} from '../domain/subscription-advisor/types'
 import { useSubscriptionBeneficiaries } from '../hooks/useSubscriptionBeneficiaries'
+import { useAdvisorRecommendation } from '../hooks/useAdvisorRecommendation'
 import styles from './NouvelleSouscriptionPage.module.css'
 
-const ADD_PERSON_PATH = '/mobility/new'
+const ADD_PERSON_PATH = '/foyer/ajouter'
 const RETURN_PATH = '/souscription/nouvelle'
 const TOTAL_STEPS = 5
 
@@ -55,37 +67,27 @@ function beneficiaryIcon(person: SubscriptionBeneficiaryView) {
   return <ChildIcon />
 }
 
-function beneficiaryLabel(person: SubscriptionBeneficiaryView) {
-  const fullName = `${person.firstName} ${person.lastName}`
-  return person.isSelf ? `${fullName} (Vous)` : fullName
-}
-
-function getDefaultProductForCategory(
-  category: BeneficiaryChoice,
-  products: typeof MOCK_SUBSCRIPTION.products,
-): SubscriptionProductId {
-  const suggested = products.find((p) => p.forBeneficiary.includes(category))
-  return suggested?.id ?? products[0].id
-}
-
 export function NouvelleSouscriptionPage() {
   const navigate = useNavigate()
-  const { user } = useAuth()
-  const { products } = MOCK_SUBSCRIPTION
+  const { t } = useTranslation('subscription')
+  const { token, user } = useAuth()
   const { beneficiaries, loading, error } = useSubscriptionBeneficiaries()
+
+  const beneficiaryLabel = (person: SubscriptionBeneficiaryView) => {
+    const fullName = `${person.firstName} ${person.lastName}`
+    return person.isSelf ? `${fullName} ${t('nouvelle.youSuffix')}` : fullName
+  }
 
   const defaultBeneficiary = beneficiaries.find((b) => b.isSelf) ?? beneficiaries[0]
   const ownerBeneficiary = beneficiaries.find((b) => b.isSelf) ?? defaultBeneficiary
 
   const [step, setStep] = useState(1)
   const [selectedBeneficiaryId, setSelectedBeneficiaryId] = useState<string | null>(null)
-  const [productId, setProductId] = useState<SubscriptionProductId>(() =>
-    getDefaultProductForCategory(
-      defaultBeneficiary?.productCategory ?? 'self',
-      products,
-    ),
-  )
   const [usage, setUsage] = useState<UsageOption>('daily')
+  const [answers, setAnswers] = useState<SubscriptionAnswers>({})
+  const [advisorHistory, setAdvisorHistory] = useState<QuestionId[]>([])
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const effectiveBeneficiaryId =
     selectedBeneficiaryId &&
@@ -98,38 +100,128 @@ export function NouvelleSouscriptionPage() {
     defaultBeneficiary
 
   const contactEmail = user?.email ?? MOCK_SUBSCRIPTION.beneficiaryForm.email
-  const isMinor = (selectedBeneficiary?.age ?? 18) < 18
-  const payerName = ownerBeneficiary
-    ? `${ownerBeneficiary.firstName} ${ownerBeneficiary.lastName}`
-    : 'Marie Dupont'
+
+  const { step: advisorStep, recommendation } = useAdvisorRecommendation(
+    selectedBeneficiary,
+    answers,
+  )
 
   const handleBeneficiaryChange = (person: SubscriptionBeneficiaryView) => {
     setSelectedBeneficiaryId(person.id)
-    setProductId(getDefaultProductForCategory(person.productCategory, products))
+    setAnswers({})
+    setAdvisorHistory([])
+    setSubmitError(null)
   }
 
-  const goNext = () => setStep((s) => Math.min(TOTAL_STEPS, s + 1))
-  const goBack = () => setStep((s) => Math.max(1, s - 1))
+  const goNext = () => {
+    if (step === 3 && selectedBeneficiary) {
+      setAnswers((prev) =>
+        seedAnswersFromUsage(
+          prev,
+          selectedBeneficiary.currentProfile,
+          usageToTravelHabit(usage),
+        ),
+      )
+      setAdvisorHistory([])
+    }
+    setStep((s) => Math.min(TOTAL_STEPS, s + 1))
+  }
+
+  const goBack = () => {
+    setSubmitError(null)
+    if (step === 4) {
+      if (advisorHistory.length > 0) {
+        const lastQuestion = advisorHistory[advisorHistory.length - 1]
+        setAdvisorHistory((history) => history.slice(0, -1))
+        setAnswers((prev) => clearAdvisorAnswer(prev, lastQuestion))
+        return
+      }
+      setAnswers({})
+      setAdvisorHistory([])
+    }
+    setStep((s) => Math.max(1, s - 1))
+  }
+
+  const handleAdvisorAnswer = (questionId: QuestionId, value: string) => {
+    const hadAnswer = getAdvisorSelectedValue(answers, questionId) !== undefined
+    setAnswers((prev) => applyAdvisorAnswer(prev, questionId, value))
+    if (!hadAnswer) {
+      setAdvisorHistory((history) => [...history, questionId])
+    }
+  }
+
+  async function handleCreateContract() {
+    if (!token || !recommendation || !selectedBeneficiary || !ownerBeneficiary) {
+      return
+    }
+    const ownerEmail = user?.email
+    if (!ownerEmail) {
+      setSubmitError('Votre compte doit avoir une adresse e-mail pour souscrire.')
+      return
+    }
+
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      const payload = buildCreateContractPayload({
+        recommendation,
+        beneficiary: selectedBeneficiary,
+        ownerEmail,
+        ownerFirstName: ownerBeneficiary.firstName,
+        ownerLastName: ownerBeneficiary.lastName,
+      })
+      const contract = await contractsApi.create(token, payload)
+      navigate(`/dossier?contractId=${contract.id}`, {
+        state: { recommendation },
+      })
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error ? err.message : 'Impossible de créer le dossier.',
+      )
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const getStepTitle = () => {
     switch (step) {
-      case 1: return 'Pour qui souhaitez-vous souscrire ?'
-      case 2: return 'Informations du bénéficiaire'
-      case 3: return 'Rôles et responsabilités'
-      case 4: return 'Quel est votre usage principal ?'
-      case 5: return 'Notre recommandation ✦'
-      default: return ''
+      case 1:
+        return t('nouvelle.step1Title')
+      case 2:
+        return t('nouvelle.step2Title')
+      case 3:
+        return t('nouvelle.step3Title')
+      case 4: {
+        const currentQuestion = advisorStep?.questions[0]
+        if (currentQuestion) return currentQuestion.label
+        if (advisorStep?.canRecommend) return t('nouvelle.step4Title')
+        return t('nouvelle.step4Title')
+      }
+      case 5:
+        return t('nouvelle.step5Title')
+      default:
+        return ''
     }
   }
 
   const getStepSubtitle = () => {
     switch (step) {
-      case 4:
-        return 'Votre réponse nous aide à vous proposer les titres les plus adaptés à vos besoins.'
+      case 3:
+        return t('nouvelle.step4Subtitle')
+      case 4: {
+        const currentQuestion = advisorStep?.questions[0]
+        if (currentQuestion?.hint) return currentQuestion.hint
+        if (advisorStep?.canRecommend) {
+          return 'Vous pouvez passer à l\u2019étape suivante pour voir notre recommandation.'
+        }
+        return 'Répondez à chaque question pour affiner le forfait proposé.'
+      }
       default:
         return undefined
     }
   }
+
+  const canContinueStep4 = advisorStep?.canRecommend ?? false
 
   const renderStep = () => {
     switch (step) {
@@ -138,11 +230,11 @@ export function NouvelleSouscriptionPage() {
           <>
             {error && (
               <p className={styles.loadError} role="status">
-                {error} Affichage de démonstration.
+                {error} {t('foyer:espace.demoFallback')}
               </p>
             )}
             {loading ? (
-              <p className={styles.loadingHint}>Chargement de votre foyer…</p>
+              <p className={styles.loadingHint}>{t('nouvelle.loadingHousehold')}</p>
             ) : (
               <div className={styles.selectionGrid}>
                 {beneficiaries.map((person) => (
@@ -155,7 +247,7 @@ export function NouvelleSouscriptionPage() {
                   />
                 ))}
                 <SelectionCard
-                  label="Ajouter une personne"
+                  label={t('foyer:foyer.addPerson')}
                   icon={<AddPersonIcon />}
                   selected={false}
                   onClick={() =>
@@ -164,9 +256,7 @@ export function NouvelleSouscriptionPage() {
                 />
               </div>
             )}
-            <InfoBanner>
-              Si la personne est mineure, vous devrez renseigner le payeur.
-            </InfoBanner>
+            <InfoBanner>{t('nouvelle.minorNotice')}</InfoBanner>
           </>
         )
 
@@ -175,7 +265,7 @@ export function NouvelleSouscriptionPage() {
           <Card key={selectedBeneficiary?.id} className={styles.formCard}>
             <div className={styles.fieldGrid}>
               <label className={styles.field}>
-                <span>Prénom</span>
+                <span>{t('nouvelle.firstName')}</span>
                 <input
                   type="text"
                   defaultValue={selectedBeneficiary?.firstName ?? ''}
@@ -183,7 +273,7 @@ export function NouvelleSouscriptionPage() {
                 />
               </label>
               <label className={styles.field}>
-                <span>Nom</span>
+                <span>{t('nouvelle.lastName')}</span>
                 <input
                   type="text"
                   defaultValue={selectedBeneficiary?.lastName ?? ''}
@@ -191,7 +281,7 @@ export function NouvelleSouscriptionPage() {
                 />
               </label>
               <label className={styles.field}>
-                <span>Date de naissance</span>
+                <span>{t('nouvelle.birthDate')}</span>
                 <input
                   type="date"
                   defaultValue={selectedBeneficiary?.birthDate ?? ''}
@@ -199,7 +289,7 @@ export function NouvelleSouscriptionPage() {
                 />
               </label>
               <label className={styles.field}>
-                <span>Email de contact</span>
+                <span>{t('nouvelle.contactEmail')}</span>
                 <input type="email" defaultValue={contactEmail} readOnly />
               </label>
             </div>
@@ -207,25 +297,30 @@ export function NouvelleSouscriptionPage() {
         )
 
       case 3:
-        return (
-          <RoleAssignmentForm
-            beneficiaryName={selectedBeneficiary?.firstName ?? '—'}
-            payerName={payerName}
-            isMinor={isMinor}
-          />
-        )
-
-      case 4:
         return <UsageSelectionCards selected={usage} onChange={setUsage} />
 
-      case 5:
-        return (
-          <RecommendationView
-            beneficiaryName={selectedBeneficiary?.firstName ?? '—'}
-            selectedId={productId}
-            onSelect={setProductId}
-            onContinue={() => navigate('/dossier')}
+      case 4:
+        return selectedBeneficiary ? (
+          <SubscriptionAdvisorStep
+            beneficiary={selectedBeneficiary}
+            answers={answers}
+            onAnswer={handleAdvisorAnswer}
           />
+        ) : null
+
+      case 5:
+        return recommendation && selectedBeneficiary ? (
+          <RecommendationView
+            beneficiaryName={selectedBeneficiary.firstName}
+            recommendation={recommendation}
+            submitting={submitting}
+            error={submitError}
+            onContinue={() => void handleCreateContract()}
+          />
+        ) : (
+          <p className={styles.loadingHint}>
+            Impossible de calculer une recommandation. Revenez à l&apos;étape précédente.
+          </p>
         )
 
       default:
@@ -233,7 +328,7 @@ export function NouvelleSouscriptionPage() {
     }
   }
 
-  const showDefaultFooter = step < TOTAL_STEPS
+  const showDefaultFooter = step < 5
 
   return (
     <SubscriptionWizardShell
@@ -246,10 +341,15 @@ export function NouvelleSouscriptionPage() {
           <div className={styles.stepHeader}>
             {step < TOTAL_STEPS && (
               <p className={styles.stepLabel}>
-                Étape {step} sur {TOTAL_STEPS}
+                {t('common:stepOf', { step, total: TOTAL_STEPS })}
               </p>
             )}
-            <h2 className={styles.question}>{getStepTitle()}</h2>
+            <h2
+              id={step === 4 ? 'advisor-question' : undefined}
+              className={styles.question}
+            >
+              {getStepTitle()}
+            </h2>
             {getStepSubtitle() && (
               <p className={styles.stepSubtitle}>{getStepSubtitle()}</p>
             )}
@@ -263,13 +363,19 @@ export function NouvelleSouscriptionPage() {
             <Button
               fullWidth
               onClick={goNext}
-              disabled={loading || !selectedBeneficiary}
+              disabled={
+                loading ||
+                !selectedBeneficiary ||
+                (step === 4 && !canContinueStep4)
+              }
             >
-              Continuer
+              {t('common:actions.continue')}
             </Button>
             {step > 1 && (
               <button type="button" className={styles.backLink} onClick={goBack}>
-                Retour
+                {step === 4 && advisorHistory.length > 0
+                  ? 'Question précédente'
+                  : t('common:actions.back')}
               </button>
             )}
           </footer>

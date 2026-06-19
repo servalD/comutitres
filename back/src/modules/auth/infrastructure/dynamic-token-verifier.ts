@@ -87,7 +87,9 @@ export class DynamicTokenVerifier extends TokenVerifier {
       throw new UnauthorizedException('Dynamic token environment mismatch');
     }
     if (!this.includesScope(claims.scope, 'user:basic')) {
-      throw new UnauthorizedException('Dynamic token authentication incomplete');
+      throw new UnauthorizedException(
+        'Dynamic token authentication incomplete',
+      );
     }
     if (
       claims.iat !== undefined &&

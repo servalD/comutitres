@@ -13,8 +13,7 @@ const createService = (
     FRANCECONNECT_MODE: 'mock',
     FRANCECONNECT_CLIENT_ID: 'placeholder-client-id',
     FRANCECONNECT_CLIENT_SECRET: 'placeholder-client-secret',
-    FRANCECONNECT_ISSUER_URL:
-      'https://fcp-low.sbx.dev-franceconnect.fr/api/v2',
+    FRANCECONNECT_ISSUER_URL: 'https://fcp-low.sbx.dev-franceconnect.fr/api/v2',
     FRANCECONNECT_REDIRECT_URI:
       'http://localhost:3000/auth/franceconnect/callback',
     FRANCECONNECT_FALLBACK_TO_MOCK: true,

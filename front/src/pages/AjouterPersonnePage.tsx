@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { AppLayout } from '../components/layout/AppLayout'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/Button'
@@ -8,11 +9,7 @@ import styles from './AjouterPersonnePage.module.css'
 
 type RelationChoice = 'child' | 'partner' | 'other'
 
-const RELATIONS: Array<{ id: RelationChoice; label: string }> = [
-  { id: 'child', label: 'Enfant' },
-  { id: 'partner', label: 'Conjoint' },
-  { id: 'other', label: 'Autre' },
-]
+const RELATION_IDS: RelationChoice[] = ['child', 'partner', 'other']
 
 function calculateAge(birthDate: string): number | null {
   if (!birthDate) return null
@@ -29,6 +26,7 @@ function calculateAge(birthDate: string): number | null {
 
 export function AjouterPersonnePage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('foyer')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [birthDate, setBirthDate] = useState('')
@@ -45,13 +43,13 @@ export function AjouterPersonnePage() {
   return (
     <AppLayout activeTab="foyer">
       <div className={styles.page}>
-        <PageHeader title="Ajouter une personne" backTo="/foyer" />
-        <p className={styles.subtitle}>Cette personne sera ajoutée à votre foyer</p>
+        <PageHeader title={t('foyer.addPerson')} backTo="/foyer" />
+        <p className={styles.subtitle}>{t('addPerson.subtitle')}</p>
 
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
           <div className={styles.fieldRow}>
             <div className={styles.field}>
-              <label className={styles.label} htmlFor="firstName">Prénom</label>
+              <label className={styles.label} htmlFor="firstName">{t('addPerson.firstName')}</label>
               <input
                 id="firstName"
                 type="text"
@@ -63,7 +61,7 @@ export function AjouterPersonnePage() {
               />
             </div>
             <div className={styles.field}>
-              <label className={styles.label} htmlFor="lastName">Nom</label>
+              <label className={styles.label} htmlFor="lastName">{t('addPerson.lastName')}</label>
               <input
                 id="lastName"
                 type="text"
@@ -77,7 +75,7 @@ export function AjouterPersonnePage() {
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="birthDate">Date de naissance</label>
+            <label className={styles.label} htmlFor="birthDate">{t('addPerson.birthDate')}</label>
             <input
               id="birthDate"
               type="date"
@@ -86,39 +84,35 @@ export function AjouterPersonnePage() {
               onChange={(e) => setBirthDate(e.target.value)}
               max={new Date().toISOString().split('T')[0]}
             />
-            <p className={styles.hint}>Permet de déterminer le forfait adapté</p>
+            <p className={styles.hint}>{t('addPerson.birthHint')}</p>
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>Lien avec vous <span className={styles.optional}>(optionnel)</span></label>
+            <label className={styles.label}>{t('addPerson.relation')} <span className={styles.optional}>{t('addPerson.optional')}</span></label>
             <div className={styles.chips}>
-              {RELATIONS.map((r) => (
+              {RELATION_IDS.map((id) => (
                 <button
-                  key={r.id}
+                  key={id}
                   type="button"
-                  className={[styles.chip, relation === r.id ? styles.chipActive : ''].filter(Boolean).join(' ')}
-                  onClick={() => setRelation(r.id)}
-                  aria-pressed={relation === r.id}
+                  className={[styles.chip, relation === id ? styles.chipActive : ''].filter(Boolean).join(' ')}
+                  onClick={() => setRelation(id)}
+                  aria-pressed={relation === id}
                 >
-                  {relation === r.id && <CheckIcon />}
-                  {r.label}
+                  {relation === id && <CheckIcon />}
+                  {t(`addPerson.relations.${id}`)}
                 </button>
               ))}
             </div>
           </div>
 
-          {isMinor && (
-            <InfoBanner>
-              Si la personne est mineure, vous serez payeur et responsable légal par défaut.
-            </InfoBanner>
-          )}
+          {isMinor && <InfoBanner>{t('addPerson.minorNotice')}</InfoBanner>}
 
           <div className={styles.actions}>
             <Button type="submit" fullWidth>
-              Ajouter et continuer
+              {t('addPerson.submit')}
             </Button>
             <Link to="/foyer" className={styles.cancelLink}>
-              Annuler
+              {t('common:actions.cancel')}
             </Link>
           </div>
         </form>
