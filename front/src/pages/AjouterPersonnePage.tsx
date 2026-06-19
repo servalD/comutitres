@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { mobilityApi } from '../api/mobility-api'
 import { AppLayout } from '../components/layout/AppLayout'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Button } from '../components/ui/Button'
@@ -26,18 +27,37 @@ function calculateAge(birthDate: string): number | null {
 
 export function AjouterPersonnePage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const returnTo: string = (location.state as { from?: string } | null)?.from ?? '/foyer'
   const { t } = useTranslation('foyer')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [relation, setRelation] = useState<RelationChoice>('child')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const age = calculateAge(birthDate)
   const isMinor = age !== null && age < 18
+  const canSubmit = firstName.trim() !== '' && lastName.trim() !== '' && birthDate !== ''
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
-    navigate('/souscription/nouvelle')
+    if (!canSubmit) return
+    setSubmitting(true)
+    setError(null)
+    try {
+      await mobilityApi.createIdentity({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        birthDate,
+      })
+      navigate(returnTo)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Impossible de créer la personne.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -46,7 +66,7 @@ export function AjouterPersonnePage() {
         <PageHeader title={t('foyer.addPerson')} backTo="/foyer" />
         <p className={styles.subtitle}>{t('addPerson.subtitle')}</p>
 
-        <form onSubmit={handleSubmit} className={styles.form} noValidate>
+        <form onSubmit={(e) => void handleSubmit(e)} className={styles.form} noValidate>
           <div className={styles.fieldRow}>
             <div className={styles.field}>
               <label className={styles.label} htmlFor="firstName">{t('addPerson.firstName')}</label>
@@ -107,11 +127,15 @@ export function AjouterPersonnePage() {
 
           {isMinor && <InfoBanner>{t('addPerson.minorNotice')}</InfoBanner>}
 
+          {error && (
+            <p className={styles.error} role="alert">{error}</p>
+          )}
+
           <div className={styles.actions}>
-            <Button type="submit" fullWidth>
-              {t('addPerson.submit')}
+            <Button type="submit" fullWidth disabled={!canSubmit || submitting}>
+              {submitting ? '…' : t('addPerson.submit')}
             </Button>
-            <Link to="/foyer" className={styles.cancelLink}>
+            <Link to={returnTo} className={styles.cancelLink}>
               {t('common:actions.cancel')}
             </Link>
           </div>

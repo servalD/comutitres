@@ -34,7 +34,6 @@ export const JUSTIFICATIF_TYPE_VALUES = [
 /** Types vérifiés automatiquement via YouSign Document Verification. */
 export const YOUSIGN_VERIFIED_TYPES = new Set<string>([
   'piece_identite',
-  'justificatif_domicile',
 ]);
 
 export function isYousignVerifiedType(type: string): boolean {

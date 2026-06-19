@@ -41,7 +41,7 @@ function statusClass(status: string) {
   return styles.statusNeutral
 }
 
-const ADD_PERSON_PATH = '/mobility/new'
+const ADD_PERSON_PATH = '/foyer/ajouter'
 
 export function MonFoyerPage() {
   const { t } = useTranslation('foyer')

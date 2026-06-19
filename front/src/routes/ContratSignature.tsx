@@ -53,26 +53,28 @@ export default function ContratSignature() {
     if (!token || !id) return;
     setSigning(true);
     setSignError(null);
+    const win = window.open('', '_blank');
     try {
       const result = await contractsApi.startSignature(token, id);
       if (result.alreadySigned || result.contractStatus === 'actif') {
+        win?.close();
         navigate(`/dossier/paiement?contractId=${id}`);
         return;
       }
       if (result.signatureLink) {
-        const popup = window.open(result.signatureLink, '_blank', 'noopener,noreferrer');
-        if (!popup) {
-          setSignError(
-            'Impossible d\u2019ouvrir un nouvel onglet. Autorisez les pop-ups pour ce site, puis réessayez.',
-          );
+        if (win) {
+          win.location.href = result.signatureLink;
+        } else {
+          window.location.href = result.signatureLink;
         }
-        setSigning(false);
       } else {
+        win?.close();
         setSignError(t('contract.signLinkUnavailable'));
-        setSigning(false);
       }
     } catch (err) {
+      win?.close();
       setSignError(err instanceof Error ? err.message : t('contract.signError'));
+    } finally {
       setSigning(false);
     }
   }

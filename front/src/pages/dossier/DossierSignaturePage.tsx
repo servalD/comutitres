@@ -73,10 +73,19 @@ export function DossierSignaturePage() {
     }
   }, [token, contractId, navigate])
 
+  const signatureEnCours = contract?.status === 'signature_en_cours'
+
   async function handleSign() {
     if (!token || !contractId || !accepted) return
     setSigning(true)
     setSignError(null)
+
+    // Ouvrir la fenetre de facon synchrone (dans le geste utilisateur)
+    // pour eviter le blocage des pop-ups navigateur.
+    // Note: pas de noopener/noreferrer car Chrome retournerait null,
+    // ce qui ferait naviguer l'onglet courant au lieu du nouvel onglet.
+    const win = window.open('', '_blank')
+
     try {
       const result = await contractsApi.startSignature(token, contractId)
       if (
@@ -84,23 +93,29 @@ export function DossierSignaturePage() {
         result.contractStatus === 'en_attente_paiement' ||
         result.contractStatus === 'actif'
       ) {
+        win?.close()
         navigate(`/dossier/paiement?contractId=${contractId}`)
         return
       }
       if (result.signatureLink) {
-        const popup = window.open(result.signatureLink, '_blank', 'noopener,noreferrer')
-        if (!popup) {
-          setSignError(
-            'Impossible d\u2019ouvrir un nouvel onglet. Autorisez les pop-ups pour ce site, puis réessayez.',
-          )
+        if (win) {
+          win.location.href = result.signatureLink
+        } else {
+          window.location.href = result.signatureLink
         }
-        setSigning(false)
       } else {
-        setSignError(t('signature.signLinkUnavailable') ?? 'Lien de signature non disponible. Réessayez dans quelques instants.')
-        setSigning(false)
+        win?.close()
+        setSignError(
+          t('signature.signLinkUnavailable') ??
+            'Lien de signature non disponible. Reessayez dans quelques instants.',
+        )
       }
     } catch (err) {
-      setSignError(err instanceof Error ? err.message : 'Erreur lors du lancement de la signature')
+      win?.close()
+      setSignError(
+        err instanceof Error ? err.message : 'Erreur lors du lancement de la signature',
+      )
+    } finally {
       setSigning(false)
     }
   }
@@ -167,7 +182,7 @@ export function DossierSignaturePage() {
       <AppLayout activeTab="accueil">
         <div className={styles.page}>
           <PageHeader title={t('detail.title')} backTo="/dossier" />
-          <p>Chargement…</p>
+          <p>Chargement...</p>
         </div>
       </AppLayout>
     )
@@ -184,7 +199,7 @@ export function DossierSignaturePage() {
   const payerName =
     `${contract.payerFirstName ?? ''} ${contract.payerLastName ?? ''}`.trim() ||
     contract.payerEmail ||
-    'Compte connecté'
+    'Compte connecte'
 
   return (
     <AppLayout activeTab="accueil">
@@ -199,7 +214,7 @@ export function DossierSignaturePage() {
         </div>
 
         <p className={styles.context}>
-          {t('signature.context', { name: beneficiaryName.split(' ')[0] ?? 'le bénéficiaire' })}
+          {t('signature.context', { name: beneficiaryName.split(' ')[0] ?? 'le beneficiaire' })}
         </p>
 
         <div className={styles.layout}>
@@ -237,11 +252,21 @@ export function DossierSignaturePage() {
               </p>
             ) : null}
 
-            {contract.status === 'signature_en_cours' && contract.yousignSignatureLink ? (
-              <p className={styles.pendingSignHint}>
-                Signature en cours sur YouSign. Une fois terminée, revenez sur cet
-                onglet — vous serez redirigé automatiquement vers le paiement.
-              </p>
+            {signatureEnCours && contract.yousignSignatureLink ? (
+              <div className={styles.pendingSignHint}>
+                <p>
+                  Signature en cours sur YouSign. Une fois terminee, revenez sur cet
+                  onglet — vous serez redirige automatiquement vers le paiement.
+                </p>
+                <a
+                  href={contract.yousignSignatureLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.reopenLink}
+                >
+                  Rouvrir YouSign
+                </a>
+              </div>
             ) : null}
           </div>
 
@@ -271,7 +296,7 @@ export function DossierSignaturePage() {
             onClick={() => void handleSign()}
           >
             <ShieldIcon />
-            {signing ? 'Ouverture de YouSign…' : t('signature.sign')}
+            {signing ? 'Ouverture de YouSign...' : t('signature.sign')}
           </Button>
         </div>
       </div>

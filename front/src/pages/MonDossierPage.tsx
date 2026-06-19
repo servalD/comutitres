@@ -537,10 +537,11 @@ export function MonDossierPage() {
                 ) : null}
 
                 <InfoBanner>
-                  Pièce d&apos;identité et justificatif de domicile : analyse
-                  YouSign. Autres documents : vérification automatique IA
-                  (Mistral). Sandbox CNI :{' '}
-                  <code>verified_id_document_verification.pdf</code>
+                  {activeSelectedType === 'piece_identite' ? (
+                    <>Sandbox CNI (YouSign) : <code>verified_id_document_verification.pdf</code></>
+                  ) : (
+                    <>Vérification automatique IA (Mistral) — tout fichier PDF est accepté.</>
+                  )}
                 </InfoBanner>
 
                 {!documentsReady && totalRequired > 0 ? (
