@@ -5,10 +5,8 @@ import { AppLayout } from '../../components/layout/AppLayout'
 import { PageHeader } from '../../components/layout/PageHeader'
 import { Button } from '../../components/ui/Button'
 import { Stepper } from '../../components/ui/Stepper'
-import {
-  ValidationTimeline,
-  buildValidationTimelineItems,
-} from '../../components/dossier/ValidationTimeline'
+import { ValidationTimeline } from '../../components/dossier/ValidationTimeline'
+import { buildValidationTimelineItems } from '../../components/dossier/validation-timeline-items'
 import { useAuth } from '../../contexts/AuthContext'
 import styles from './DossierValidationPage.module.css'
 

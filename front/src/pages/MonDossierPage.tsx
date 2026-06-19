@@ -195,7 +195,7 @@ export function MonDossierPage() {
     return () => {
       cancelled = true
     }
-  }, [token, contractId])
+  }, [token, contractId, navigate])
 
   const hasPendingVerification = uploads.some(
     (j) => j.status === 'en_cours_de_verification',
